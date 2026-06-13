@@ -20,7 +20,7 @@
         if (saved) {
             try {
                 const state = JSON.parse(saved);
-                if (state.width && state.height && state.width >= 250 && state.width < 2000 && state.height >= 400 && state.height < 1000) {
+                if (state.width && state.height && state.width >= 330 && state.width < 2000 && state.height >= 500 && state.height < 2000) {
                     const maxX = window.screen.availWidth - 100; 
                     const maxY = window.screen.availHeight - 100;
                     const x = Math.min(Math.max(state.x, 0), maxX); 
@@ -48,34 +48,41 @@
     }
 
     // ========================================================
-    // 2. ميزة إدارة التثبيت والـ PWA والتحديث عبر الـ countdown-box
+    // 2. ميزة إدارة التثبيت والـ PWA والتحديث عبر الـ prayerBody
     // ========================================================
     let deferredPrompt;
     const installBtn = document.getElementById('pwaInstallBtn');
 
-    // دالة ربط حدث التحديث بصندوق العد التنازلي وتحسين مظهر المؤشر والتلميح
-    function setupCountdownRefresh() {
-        // البحث عن صندوق العد التنازلي سواء كان معرفاً كـ Class أو Id
-        const countdownBox = document.querySelector('.countdown-box') || document.getElementById('countdown-box');
+    function setupPrayerBodyRefresh() {
+        // فحص شامل للعثور على عنصر prayerBody بشتى الطرق الممكنة في الـ HTML
+        const prayerBody = document.querySelector('.prayerBody') || 
+                           document.getElementById('prayerBody') || 
+                           document.querySelector('[id*="prayerBody"]') ||
+                           document.querySelector('[class*="prayerBody"]');
         
-        if (countdownBox) {
-            // تغيير شكل مؤشر الفأرة عند الوقوف على الصندوق ليدل على أنه قابل للضغط
-            countdownBox.style.cursor = 'pointer';
-            if (!countdownBox.title) {
-                countdownBox.title = 'اضغط هنا لتحديث التطبيق وتنظيف الكاش 🔄';
-            }
+        if (prayerBody) {
+            console.log('تم العثور على منطقة prayerBody بنجاح!');
+            prayerBody.style.cursor = 'pointer';
+            prayerBody.title = 'اضغط هنا لتحديث التطبيق وتنظيف الكاش 🔄';
 
-            // حدث الضغط لتفريغ الكاش وإعادة التشغيل فوراً
-            countdownBox.addEventListener('click', () => {
+            // حدث الضغط لتفريغ الكاش وإعادة التشغيل فوراً من السيرفر
+            prayerBody.addEventListener('click', async () => {
+                console.log('تم الضغط على prayerBody، جاري تفريغ الكاش وإعادة التشغيل...');
+                
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then((registrations) => {
+                    try {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
                         for (let registration of registrations) {
-                            registration.unregister(); 
+                            await registration.unregister(); 
                         }
-                    });
+                    } catch(e) { console.error('SW unregister failed:', e); }
                 }
-                window.location.reload(true); 
+                
+                // طلب الصفحة مباشرة من السيرفر وتفادي الكاش الصارم للمتصفح
+                window.location.href = window.location.origin + window.location.pathname + '?clear-cache=' + Date.now();
             });
+        } else {
+            console.warn('تنبيه: لم يتم العثور على عنصر يحمل اسم prayerBody في صفحة الـ HTML حالياً!');
         }
     }
 
@@ -114,7 +121,7 @@
     // ========================================================
     function initAll() {
         initWindowPersistence();
-        setupCountdownRefresh(); // تفعيل ميزة التحديث داخل الصندوق
+        setupPrayerBodyRefresh(); // تفعيل ميزة التحديث داخل جسم المواقيت
     }
 
     if (document.readyState === "loading") {
