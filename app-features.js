@@ -20,7 +20,7 @@
         if (saved) {
             try {
                 const state = JSON.parse(saved);
-                if (state.width && state.height && state.width >= 330 && state.width < 2000 && state.height >= 500 && state.height < 2000) {
+                if (state.width && state.height && state.width >= 250 && state.width < 2000 && state.height >= 400 && state.height < 1000) {
                     const maxX = window.screen.availWidth - 100; 
                     const maxY = window.screen.availHeight - 100;
                     const x = Math.min(Math.max(state.x, 0), maxX); 
