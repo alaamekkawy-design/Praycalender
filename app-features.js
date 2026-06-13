@@ -48,23 +48,25 @@
     }
 
     // ========================================================
-    // 2. ميزة إدارة التثبيت والـ PWA وتفعيل التحديث عبر الفوتر
+    // 2. ميزة إدارة التثبيت والـ PWA والتحديث عبر الـ countdown-box
     // ========================================================
     let deferredPrompt;
     const installBtn = document.getElementById('pwaInstallBtn');
 
-    // دالة ربط حدث التحديث بمنطقة الفوتر وتحسين مظهر المؤشر
-    function setupFooterRefresh() {
-        const footer = document.querySelector('footer');
-        if (footer) {
-            // تغيير شكل مؤشر الفأرة عند الوقوف على الفوتر ليعرف المستخدم أنه قابل للضغط
-            footer.style.cursor = 'pointer';
-            if (!footer.title) {
-                footer.title = 'اضغط هنا لتحديث التطبيق وتنظيف الكاش 🔄';
+    // دالة ربط حدث التحديث بصندوق العد التنازلي وتحسين مظهر المؤشر والتلميح
+    function setupCountdownRefresh() {
+        // البحث عن صندوق العد التنازلي سواء كان معرفاً كـ Class أو Id
+        const countdownBox = document.querySelector('.countdown-box') || document.getElementById('countdown-box');
+        
+        if (countdownBox) {
+            // تغيير شكل مؤشر الفأرة عند الوقوف على الصندوق ليدل على أنه قابل للضغط
+            countdownBox.style.cursor = 'pointer';
+            if (!countdownBox.title) {
+                countdownBox.title = 'اضغط هنا لتحديث التطبيق وتنظيف الكاش 🔄';
             }
 
-            // حدث الضغط لتفريغ الكاش وإعادة التشغيل
-            footer.addEventListener('click', () => {
+            // حدث الضغط لتفريغ الكاش وإعادة التشغيل فوراً
+            countdownBox.addEventListener('click', () => {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then((registrations) => {
                         for (let registration of registrations) {
@@ -108,11 +110,11 @@
     });
 
     // ========================================================
-    // 3. تشغيل الميزات وتفعيل الفوتر عند تحميل الصفحة
+    // 3. تشغيل الميزات تلقائياً عند تحميل الصفحة
     // ========================================================
     function initAll() {
         initWindowPersistence();
-        setupFooterRefresh(); // تفعيل ميزة الضغط على الفوتر
+        setupCountdownRefresh(); // تفعيل ميزة التحديث داخل الصندوق
     }
 
     if (document.readyState === "loading") {
