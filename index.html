@@ -882,7 +882,7 @@ function restoreWindowState() {
     const saved = localStorage.getItem(WINDOW_STORAGE_KEY);
     if (saved) {
       const state = JSON.parse(saved);
-      if (state.width > 300 && state.width < 2000 && state.height > 300 && state.height < 2000) {
+      if (state.width > 300 && state.width < 1000 && state.height > 300 && state.height < 1000) {
         const maxX = window.screen.availWidth - 100;
         const maxY = window.screen.availHeight - 100;
         window.resizeTo(state.width, state.height);
@@ -897,7 +897,7 @@ function restoreWindowState() {
 
 function initWindowPersistence() {
   if (!restoreWindowState()) {
-    window.resizeTo(480, 500);
+    window.resizeTo(330, 500);
     document.title = 'التقويم الإسلامي - 480×500';
   }
   window.addEventListener('resize', () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveWindowState, 500); });
