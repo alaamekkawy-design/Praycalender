@@ -48,47 +48,33 @@
     }
 
     // ========================================================
-    // 2. ميزة إدارة التثبيت والـ PWA وإنشاء زر التحديث تلقائياً
+    // 2. ميزة إدارة التثبيت والـ PWA وتفعيل التحديث عبر الفوتر
     // ========================================================
     let deferredPrompt;
     const installBtn = document.getElementById('pwaInstallBtn');
-    let refreshBtn = null;
 
-    // دالة لإنشاء زر التحديث وحقنه في الصفحة تلقائياً
-    function createRefreshButton() {
-        refreshBtn = document.createElement('button');
-        refreshBtn.id = 'appRefreshBtn';
-        refreshBtn.innerHTML = 'تحديث التطبيق 🔄';
-        
-        // تنسيق الزر ليظهر بشكل أنيق وثابت أعلى الصفحة
-        Object.assign(refreshBtn.style, {
-            backgroundColor: '#0f766e',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            position: 'fixed',
-            top: '10px',
-            left: '10px',
-            zIndex: '1002'
-        });
-
-        // حدث الضغط على الزر لتفريغ الكاش وإعادة التحميل
-        refreshBtn.addEventListener('click', () => {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then((registrations) => {
-                    for (let registration of registrations) {
-                        registration.unregister(); 
-                    }
-                });
+    // دالة ربط حدث التحديث بمنطقة الفوتر وتحسين مظهر المؤشر
+    function setupFooterRefresh() {
+        const footer = document.querySelector('footer');
+        if (footer) {
+            // تغيير شكل مؤشر الفأرة عند الوقوف على الفوتر ليعرف المستخدم أنه قابل للضغط
+            footer.style.cursor = 'pointer';
+            if (!footer.title) {
+                footer.title = 'اضغط هنا لتحديث التطبيق وتنظيف الكاش 🔄';
             }
-            window.location.reload(true); 
-        });
 
-        // إضافة الزر إلى جسم الصفحة
-        document.body.appendChild(refreshBtn);
+            // حدث الضغط لتفريغ الكاش وإعادة التشغيل
+            footer.addEventListener('click', () => {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then((registrations) => {
+                        for (let registration of registrations) {
+                            registration.unregister(); 
+                        }
+                    });
+                }
+                window.location.reload(true); 
+            });
+        }
     }
 
     if ('serviceWorker' in navigator) {
@@ -122,11 +108,11 @@
     });
 
     // ========================================================
-    // 3. تشغيل الميزات وتوليد الأزرار عند تحميل الصفحة
+    // 3. تشغيل الميزات وتفعيل الفوتر عند تحميل الصفحة
     // ========================================================
     function initAll() {
         initWindowPersistence();
-        createRefreshButton(); // توليد الزر بمجرد جاهزية الصفحة
+        setupFooterRefresh(); // تفعيل ميزة الضغط على الفوتر
     }
 
     if (document.readyState === "loading") {
