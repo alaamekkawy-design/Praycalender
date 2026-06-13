@@ -2,8 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>التقويم الإسلامي</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> 
+<title>التقويم الإسلامي</title> 
+ <link rel="icon" type="image/png" href="./icons/icon-48x48.png">
+ <link rel="manifest" href="./manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#0f766e">
+
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -327,6 +333,9 @@
 </style>
 </head>
 <body>
+<button id="pwaInstallBtn" style="display: none; background-color: #0f766e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-family: inherit; position: fixed; top: 10px; z-index: 1001;">
+    تثبيت تطبيق مواقيت الصلاة على جهازك
+</button>
 
 <div class="widget" id="widget">
   <button id="darkToggle" title="تبديل الوضع الليلي">🌙</button>
@@ -1049,5 +1058,6 @@ attachEvents();
 startCountdownTimer();       // بدء المؤقت فوراً
 refreshWidget(new Date());   // جلب البيانات
 </script>
+ <script src="./app-features.js"></script>
 </body>
 </html>
