@@ -48,8 +48,7 @@ function initWindowPersistence() {
     window.addEventListener('beforeunload', saveWindowState);
 }
 
-// أضف هذا السطر في نهاية الملف تماماً لإغلاق النطاق
-})();
+
 // ========================================================
 // 2. ميزة إدارة التثبيت والـ PWA والتحديث
 // ========================================================
@@ -92,3 +91,5 @@ window.addEventListener('appinstalled', () => {
 document.addEventListener("DOMContentLoaded", () => {
     initWindowPersistence();
 });
+    // أضف هذا السطر في نهاية الملف تماماً لإغلاق النطاق
+})();
