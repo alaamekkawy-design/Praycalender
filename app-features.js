@@ -20,7 +20,7 @@
         if (saved) {
             try {
                 const state = JSON.parse(saved);
-                if (state.width && state.height && state.width > 300 && state.width < 2000 && state.height > 300 && state.height < 2000) {
+                if (state.width && state.height && state.width >= 330 && state.width < 2000 && state.height >= 500 && state.height < 2000) {
                     const maxX = window.screen.availWidth - 100; 
                     const maxY = window.screen.availHeight - 100;
                     const x = Math.min(Math.max(state.x, 0), maxX); 
@@ -48,10 +48,48 @@
     }
 
     // ========================================================
-    // 2. ميزة إدارة التثبيت والـ PWA والتحديث
+    // 2. ميزة إدارة التثبيت والـ PWA وإنشاء زر التحديث تلقائياً
     // ========================================================
     let deferredPrompt;
     const installBtn = document.getElementById('pwaInstallBtn');
+    let refreshBtn = null;
+
+    // دالة لإنشاء زر التحديث وحقنه في الصفحة تلقائياً
+    function createRefreshButton() {
+        refreshBtn = document.createElement('button');
+        refreshBtn.id = 'appRefreshBtn';
+        refreshBtn.innerHTML = 'تحديث التطبيق 🔄';
+        
+        // تنسيق الزر ليظهر بشكل أنيق وثابت أعلى الصفحة
+        Object.assign(refreshBtn.style, {
+            backgroundColor: '#0f766e',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            position: 'fixed',
+            top: '10px',
+            left: '10px',
+            zIndex: '1002'
+        });
+
+        // حدث الضغط على الزر لتفريغ الكاش وإعادة التحميل
+        refreshBtn.addEventListener('click', () => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then((registrations) => {
+                    for (let registration of registrations) {
+                        registration.unregister(); 
+                    }
+                });
+            }
+            window.location.reload(true); 
+        });
+
+        // إضافة الزر إلى جسم الصفحة
+        document.body.appendChild(refreshBtn);
+    }
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -84,11 +122,16 @@
     });
 
     // ========================================================
-    // 3. تشغيل الميزات تلقائياً عند تحميل الصفحة
+    // 3. تشغيل الميزات وتوليد الأزرار عند تحميل الصفحة
     // ========================================================
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initWindowPersistence);
-    } else {
+    function initAll() {
         initWindowPersistence();
+        createRefreshButton(); // توليد الزر بمجرد جاهزية الصفحة
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initAll);
+    } else {
+        initAll();
     }
 })();
