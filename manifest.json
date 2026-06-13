@@ -1,6 +1,6 @@
 {
-  "name": "مواقيت الصلاة",
-  "short_name": "Pray_Calender",
+  "name": "التقويم الإسلامي",
+  "short_name": "Pray_Time",
   "description": "تطبيق لعرض مواقيت الصلاة في مصر مع عداد تنازلي بدون إنترنت",
   "start_url": "./index.html",
   "scope": "./",
