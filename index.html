@@ -245,11 +245,37 @@
   }
   body.dark-mode .next-prayer-box { background: #0a1628; }
 
-  /* زر التبديل */
+  /* ===== زر الموقع أعلى اليسار ===== */
+  #locationBtn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #1a3a6b;
+    border: none;
+    font-size: clamp(16px, 4vmin, 22px);
+    cursor: pointer;
+    z-index: 10;
+    padding: 6px 10px;
+    border-radius: 30px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #locationBtn:active { transform: scale(0.95); opacity: 0.8; }
+  body.dark-mode #locationBtn {
+    background: #2a5298;
+    color: #e8f0ff;
+  }
+
+  /* زر التبديل (الوضع الليلي) - تعديل المسافة لعدم التداخل */
   #darkToggle {
     position: absolute;
-    top: 6px;
-    left: 8px;
+    top: 8px;
+    right: 8px;
     background: none;
     border: none;
     font-size: clamp(12px, 3vmin, 16px);
@@ -338,7 +364,12 @@
 </button>
 
 <div class="widget" id="widget">
+  <!-- زر الموقع - أعلى اليسار (يؤدي إلى location.html) -->
+  <button id="locationBtn" title="الموقع والإعدادات">📍 الموقع</button>
+  
+  <!-- زر الوضع الليلي - أعلى اليمين -->
   <button id="darkToggle" title="تبديل الوضع الليلي">🌙</button>
+  
   <div class="day-name-ar clickable-date" id="dayAr">...</div>
   <div class="day-name-en clickable-date" id="dayEn">...</div>
   <div class="dates-row">
@@ -476,6 +507,11 @@ function toCoptic(date) {
   const day   = dayDiff % 30 + 1;
   return { day, month, year: copticYear };
 }
+
+// ======================== زر الموقع - فتح صفحة location.html ========================
+document.getElementById('locationBtn').addEventListener('click', function() {
+  window.location.href = 'location.html';
+});
 
 // ======================== صوت الأذان ========================
 const AZAN_URLS_LIST = [
@@ -1058,6 +1094,6 @@ attachEvents();
 startCountdownTimer();       // بدء المؤقت فوراً
 refreshWidget(new Date());   // جلب البيانات
 </script>
- <script src="./app-features.js"></script>
+<script src="./app-features.js"></script>
 </body>
 </html>
