@@ -1,4 +1,4 @@
-const CACHE_NAME = 'prayer-times-v1';
+const CACHE_NAME = 'prayer-times-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
