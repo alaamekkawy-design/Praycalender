@@ -785,8 +785,106 @@
   function unlockAudio() { if(audioUnlocked) return; audioUnlocked=true; try{ const ctx=new(AudioContext||webkitAudioContext)(); const buf=ctx.createBuffer(1,1,22050); const src=ctx.createBufferSource(); src.buffer=buf; src.connect(ctx.destination); src.start(0); ctx.resume(); }catch(e){} }
   document.addEventListener('click', unlockAudio, { once: true }); document.addEventListener('touchstart', unlockAudio, { once: true });
   function stopAzan() { if(azanAudio){ azanAudio.pause(); azanAudio.currentTime=0; azanAudio=null; } const ov=document.getElementById('azanOverlay'); if(ov) ov.remove(); }
-  function showAzanOverlay(prayerName){/*...*/ const ov=document.createElement('div'); ov.id='azanOverlay'; ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:9999;direction:rtl;font-family:Cairo,sans-serif'; const box=document.createElement('div'); box.style.cssText='background:#1a3a6b;border-radius:20px;padding:30px 40px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.5);max-width:280px;width:90%'; box.innerHTML=`<div style="font-size:36px;margin-bottom:10px">🕌</div><div style="color:#f0c040;font-family:Amiri,serif;font-size:22px;font-weight:700;margin-bottom:6px">حان وقت صلاة</div><div style="color:#fff;font-family:Amiri,serif;font-size:32px;font-weight:800;margin-bottom:20px">${prayerName}</div><button id="stopAzanBtn" style="background:#f0c040;border:none;color:#1a3a6b;padding:10px 40px;border-radius:50px;font-size:16px;font-weight:800;cursor:pointer;">⏹ إيقاف الأذان</button>`; ov.appendChild(box); document.body.appendChild(ov); document.getElementById('stopAzanBtn').addEventListener('click',stopAzan); }
-  async function playAlert(prayerName){ unlockAudio(); stopAzan(); showAzanOverlay(prayerName||'الصلاة'); for(const url of AZAN_URLS_LIST){ try{ const audio=new Audio(); audio.volume=1.0; audio.src=url; azanAudio=audio; await audio.play(); audio.addEventListener('ended',()=>{ azanAudio=null; const ol=document.getElementById('azanOverlay'); if(ol) ol.remove(); }); return; }catch(e){ console.warn(e); azanAudio=null; } } try{ const ctx=new(AudioContext||webkitAudioContext)(); await ctx.resume(); [880,660,770,880].forEach((freq,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=freq; const t0=ctx.currentTime+i*0.7; g.gain.setValueAtTime(0.4,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); o.start(t0); o.stop(t0+0.6); }); }catch(e){} }
+ function showAzanOverlay(prayerName) {
+    // إزالة أي overlay موجود مسبقاً
+    const existingOverlay = document.getElementById('azanOverlay');
+    if (existingOverlay) existingOverlay.remove();
+    
+    // إنشاء الـ overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'azanOverlay';
+    
+    // ستايل مضمون للعمل على جميع الأجهزة (خصوصاً أندرويد)
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        direction: rtl;
+        font-family: 'Cairo', sans-serif;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    `;
+    
+    // محتوى الـ overlay
+    overlay.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, #1a3a6b 0%, #0f2a4a 100%);
+            border-radius: 32px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            max-width: 300px;
+            width: 85%;
+            border: 1px solid rgba(255,215,0,0.3);
+            animation: fadeInUp 0.4s ease-out;
+        ">
+            <div style="font-size: 64px; margin-bottom: 15px;">🕌</div>
+            <div style="color: #f0c040; font-family: 'Amiri', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px;">حان وقت صلاة</div>
+            <div style="color: #ffffff; font-family: 'Amiri', serif; font-size: 42px; font-weight: 800; margin-bottom: 30px;">${prayerName}</div>
+            <button id="stopAzanBtn" style="
+                background: #f0c040;
+                border: none;
+                color: #1a3a6b;
+                padding: 12px 35px;
+                border-radius: 60px;
+                font-size: 18px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: transform 0.2s;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            ">⏹ إيقاف الأذان</button>
+        </div>
+    `;
+    
+    // إضافة animation باستخدام CSS keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(overlay);
+    
+    // إضافة حدث الإغلاق (لأجهزة اللمس والماوس معاً)
+    const stopBtn = document.getElementById('stopAzanBtn');
+    if (stopBtn) {
+        stopBtn.addEventListener('click', stopAzan);
+        stopBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            stopAzan();
+        });
+    }
+    
+    // إغلاق عند النقر على الخلفية
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            stopAzan();
+        }
+    });
+    overlay.addEventListener('touchstart', function(e) {
+        if (e.target === overlay) {
+            e.preventDefault();
+            stopAzan();
+        }
+    });
+} 
+ async function playAlert(prayerName){ unlockAudio(); stopAzan(); showAzanOverlay(prayerName||'الصلاة'); for(const url of AZAN_URLS_LIST){ try{ const audio=new Audio(); audio.volume=1.0; audio.src=url; azanAudio=audio; await audio.play(); audio.addEventListener('ended',()=>{ azanAudio=null; const ol=document.getElementById('azanOverlay'); if(ol) ol.remove(); }); return; }catch(e){ console.warn(e); azanAudio=null; } } try{ const ctx=new(AudioContext||webkitAudioContext)(); await ctx.resume(); [880,660,770,880].forEach((freq,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=freq; const t0=ctx.currentTime+i*0.7; g.gain.setValueAtTime(0.4,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); o.start(t0); o.stop(t0+0.6); }); }catch(e){} }
   
   function updateCountdown(){ /* نفس الكود الأصلي مبسط */ if(!isToday()){ const s=document.getElementById('nextPrayerSection'); if(s) s.style.display='none'; return; } const s2=document.getElementById('nextPrayerSection'); if(s2) s2.style.display=''; if(!prayerData||!prayerData.timings) return; const now=new Date(); const curMin=now.getHours()*60+now.getMinutes(); const curSec=now.getSeconds(); const t=prayerData.timings; const o=settings.offsets; const list=[{key:'fajr',name:'الفجر',mins:toMins(t.Fajr,o.fajr),disp:fmtTime(t.Fajr,o.fajr)},{key:'sunrise',name:'الشروق',mins:toMins(t.Sunrise,o.sunrise),disp:fmtTime(t.Sunrise,o.sunrise)},{key:'dhuhr',name:'الظهر',mins:toMins(t.Dhuhr,o.dhuhr),disp:fmtTime(t.Dhuhr,o.dhuhr)},{key:'asr',name:'العصر',mins:toMins(t.Asr,o.asr),disp:fmtTime(t.Asr,o.asr)},{key:'maghrib',name:'المغرب',mins:toMins(t.Maghrib,o.maghrib),disp:fmtTime(t.Maghrib,o.maghrib)},{key:'isha',name:'العشاء',mins:toMins(t.Isha,o.isha),disp:fmtTime(t.Isha,o.isha)}].filter(p=>p.mins!==null); if(list.length===0) return; const curTotalSec=curMin*60+curSec; let next=list.find(p=>p.mins*60>curTotalSec)||list[0]; let diffSec=next.mins*60-curTotalSec; if(diffSec<=0) diffSec+=24*3600; const hrs=Math.floor(diffSec/3600), mins=Math.floor((diffSec%3600)/60), secs=diffSec%60; document.getElementById('nextPrayerName').textContent=next.name; document.getElementById('nextPrayerTime').textContent=next.disp; document.getElementById('countdownTimer').textContent=`${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; if(hrs===0&&mins===0&&secs<=4&&alertedFor!==next.key){ alertedFor=next.key; playAlert(next.name); } if(diffSec>60&&alertedFor===next.key) alertedFor=null; }
   
