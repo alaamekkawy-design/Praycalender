@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"> 
 <title>التقويم الإسلامي</title> 
 <link rel="icon" type="image/png" href="./icons/icon-48x48.png"> 
 <link rel="manifest" href="./manifest.json">
@@ -10,45 +10,35 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="#0f766e"> 
 
+<!-- ربط ملف التثبيت المساعد -->
+<script src="install.js" defer></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; min-height: 100%; min-width: 0; height: 100%; overflow: hidden; position: relative; }
+  html, body { width: 100%; min-width: 0; height: 100%; overflow: hidden; position: relative; }
   body {
     background: #1a2a3a;
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Cairo', sans-serif;
-    margin: 0;
-    padding: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    padding: 0px;
   }
   .widget {
     background: #ffffff;
-    width: 100vw; height: 100vh;
+    width: 100%; height: 100%;
     min-width: 0;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    overflow-y: auto;  /* أو auto للسماح بالتمرير إذا لزم الأمر */
-    overflow-x: hidden;
+    overflow: hidden;
     border: 1px solid #b0bfcf;
     padding: 2% 2% 2%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
-
-   
   }
-
   .clickable-date { cursor: pointer; transition: opacity 0.1s; }
   .clickable-date:active { opacity: 0.65; }
   .day-name-ar {
@@ -157,7 +147,6 @@
     min-height: 0;
     gap: 1%;
   }
-  /* ===== تحسين جدول المواقيت: خط واضح وألوان قابلة للقراءة خاصة في الوضع الليلي ===== */
   .prayer-table {
     width: 100%;
     border-collapse: collapse;
@@ -175,7 +164,6 @@
     font-weight: 600;
     transition: all 0.2s ease;
   }
-  /* ألوان رؤوس الجدول مع تباين عالي */
   .prayer-table th {
     background: #eef2f9;
     font-weight: 800;
@@ -183,7 +171,6 @@
     color: #0a2a4a;
     letter-spacing: 0.3px;
   }
-  /* عمود المدن (العمود الأول) */
   .prayer-table td:first-child {
     font-weight: 800;
     background: #f8fafd;
@@ -191,7 +178,6 @@
     color: #0f3a6b;
     border-left-width: 1px;
   }
-  /* تنسيق أوقات الصلاة: لون داكن وواضح، خط monospace للأرقام مع مسافة بسيطة */
   .prayer-table td span {
     font-weight: 800;
     font-family: 'Cairo', 'Courier New', monospace;
@@ -204,7 +190,6 @@
     color: #1a3a6b;
   }
   
-  /* ========== تحسينات خاصة بالوضع الليلي لجعل الأوقات أكثر وضوحاً ========== */
   body.dark-mode .prayer-table th {
     background: #0a1628;
     color: #e8f0ff;
@@ -228,12 +213,10 @@
     text-shadow: 0 0 1px rgba(0,0,0,0.2);
     letter-spacing: 0.8px;
   }
-  /* تحسين الخط لعرض الأرقام في الليلي */
   body.dark-mode .prayer-table td span {
     font-family: 'Cairo', 'Courier New', monospace;
     color: #ffecb3;
   }
-  /* إضافة تباين إضافي لخلفية الخلايا عند المرور */
   .prayer-table td:hover {
     background-color: rgba(26, 58, 107, 0.08);
   }
@@ -272,7 +255,6 @@
   .countdown-label   { color: #a8c0e8; font-size: 2.5vw; }
   .countdown-timer   { color: #fff; font-size: 6vw; font-weight: 700; letter-spacing: 1px; margin-top: .5vw; }
 
-  /* DARK MODE */
   body.dark-mode { background: #0a0f1a; }
   body.dark-mode .widget {
     background: #0f1e33;
@@ -308,7 +290,6 @@
   }
   body.dark-mode .next-prayer-box { background: #0a1628; }
 
-  /* زر الموقع أعلى اليسار */
   #locationBtn {
     position: absolute;
     top: 8px;
@@ -349,7 +330,24 @@
   }
   #darkToggle:hover { opacity: 1; }
   
-  /* ========== POPUP MODERN ========== */
+  /* زر التثبيت */
+  #pwaInstallBtn {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f766e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  
   .location-popup-overlay {
     position: fixed;
     top: 0;
@@ -615,7 +613,6 @@
   }
   .picker-actions button.outline { background: #e0e5ec; color: #1a3a6b; }
 
-  /* ========== AZAN OVERLAY ========== */
   #azanOverlay {
     position: fixed;
     top: 0;
@@ -661,46 +658,10 @@
   }
 </style>
 </head>
-<body style="margin:0; padding:0; overflow:hidden;">
-<button id="pwaInstallBtn" style="display: none; background-color: #0f766e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-family: inherit; position: fixed; top: 10px; z-index: 1001;">
-    تثبيت تطبيق مواقيت الصلاة على جهازك
-</button>
+<body>
 
-<!-- أضف هذا الـ HTML في مكان مناسب (مثلاً بعد زر التثبيت) -->
-<div id="iosInstallGuide" style="display: none; background: #1a3a6b; color: white; padding: 12px; border-radius: 12px; margin-top: 10px; text-align: center; font-size: 12px; position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 1000;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span>📱 لتثبيت التطبيق على iPhone:</span>
-        <button id="closeIosGuide" style="background: none; border: none; color: white; font-size: 18px;">✕</button>
-    </div>
-    <div style="margin-top: 8px;">
-        1. اضغط على أيقونة المشاركة 📤<br>
-        2. اختر "إلى الشاشة الرئيسية"<br>
-        3. اضغط "إضافة"
-    </div>
-</div>
-
-<script>
-// الكشف عن متصفح Safari على iOS
-function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-
-function isSafari() {
-    return /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-}
-
-// إظهار دليل التثبيت لمستخدمي iOS
-if (isIOS() && !window.matchMedia('(display-mode: standalone)').matches) {
-    const guide = document.getElementById('iosInstallGuide');
-    if (guide) {
-        guide.style.display = 'block';
-        document.getElementById('closeIosGuide')?.addEventListener('click', () => {
-            guide.style.display = 'none';
-        });
-    }
-}
-</script>
- 
+<!-- زر التثبيت (يظهر تلقائياً على Android/Windows) -->
+<button id="pwaInstallBtn" style="display: none;">📱 تثبيت التطبيق</button>
 
 <div class="widget" id="widget">
   <button id="locationBtn" title="الموقع والإعدادات">📍 الموقع</button>
@@ -755,7 +716,7 @@ if (isIOS() && !window.matchMedia('(display-mode: standalone)').matches) {
 </div>
 
 <script>
-// ======================== بيانات الموقع (افتراضية، تُستبدل ببيانات GPS الفعلية) ========================
+// ======================== بيانات الموقع ========================
 const DEFAULT_LOCATION_DATA = {
   latitude: 0,
   latitudeDMS: "0°0'0.0000\" N",
@@ -767,7 +728,6 @@ const DEFAULT_LOCATION_DATA = {
 let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
 let locationIsLive = false;
 
-// تحويل من درجات عشرية إلى صيغة DMS (درجات/دقائق/ثواني)
 function toDMS(value, isLat) {
   const abs = Math.abs(value);
   let deg = Math.floor(abs);
@@ -786,7 +746,6 @@ function toDMS(value, isLat) {
   return `${deg}°${min}'${sec.toFixed(4)}" ${dir}`;
 }
 
-// جلب الموقع الحالي عبر GPS الجهاز
 function getCurrentLocation() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -801,7 +760,6 @@ function getCurrentLocation() {
   });
 }
 
-// تحويل الإحداثيات إلى عنوان عبر خدمة Reverse Geocoding
 async function reverseGeocode(lat, lng) {
   try {
     const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
@@ -815,13 +773,11 @@ async function reverseGeocode(lat, lng) {
   }
 }
 
-// إنشاء رابط خرائط جوجل
 function getGoogleMapsLink() {
   if (!locationIsLive) return '#';
   return `https://www.google.com/maps?q=${LOCATION_DATA.latitude},${LOCATION_DATA.longitude}`;
 }
 
-// عرض POPUP الموقع
 function showLocationPopup() {
   const existing = document.querySelector('.location-popup-overlay');
   if (existing) existing.remove();
@@ -897,8 +853,8 @@ function showLocationPopup() {
       };
       locationIsLive = true;
       renderCard();
-      showToast('تم تحديث الموقع ✅');
-    } catch (e) { showToast('تعذر تحديد الموقع'); }
+      showToastMessage('تم تحديث الموقع ✅');
+    } catch (e) { showToastMessage('تعذر تحديد الموقع'); }
   }
 
   overlay.appendChild(card);
@@ -909,17 +865,19 @@ function showLocationPopup() {
 }
 
 async function copyToClipboard(text, successMsg) {
-  try { await navigator.clipboard.writeText(text); showToast(successMsg); } 
-  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(successMsg); }
+  try { await navigator.clipboard.writeText(text); showToastMessage(successMsg); } 
+  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToastMessage(successMsg); }
 }
-function showToast(msg) {
+
+function showToastMessage(msg) {
   const existing = document.querySelector('.copy-success'); if(existing) existing.remove();
   const toast = document.createElement('div'); toast.className = 'copy-success'; toast.innerText = msg; document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 2000);
 }
+
 function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-// ======================== باقي الكود الأصلي مع تعديلات بسيطة ========================
+// ======================== باقي كود التطبيق ========================
 const CITIES = [
   { name: 'القاهرة', lat: 30.0444, lng: 31.2357 },
   { name: 'الإسكندرية', lat: 31.2001, lng: 29.9187 },
@@ -992,36 +950,28 @@ setInterval(checkAutoTheme,60000); checkAutoTheme();
 attachEvents();
 startCountdownTimer();
 refreshWidget(new Date());
-</script>
- <script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('✅ SW registered:', reg))
-            .catch(err => console.error('❌ SW failed:', err));
-    });
-}
 
-let deferredPrompt;
-const installBtn = document.getElementById('pwaInstallBtn');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (installBtn) installBtn.style.display = 'block';
-    console.log('✅ زر التثبيت جاهز للظهور');
+// ======================== تهيئة PWA ========================
+// تهيئة نظام التثبيت بعد تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.PWAInstall) {
+        window.PWAInstall.init({
+            swPath: './sw.js',
+            autoRegisterSW: true,
+            showIOSGuideAuto: true
+        });
+    } else {
+        console.log('⚠️ PWAInstall غير متاح، تأكد من تحميل install.js');
+        // محاولة تسجيل Service Worker بشكل يدوي
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ SW registered:', reg))
+                    .catch(err => console.error('❌ SW failed:', err));
+            });
+        }
+    }
 });
-
-if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-    });
-}
 </script>
 </body>
 </html>
-```
