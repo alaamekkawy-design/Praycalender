@@ -49,28 +49,6 @@
    
   }
 
- /* إزالة المسافات الإضافية للأجهزة الحديثة */
-@supports (padding: max(0px)) {
-    body, .widget {
-        padding-left: max(0px, env(safe-area-inset-left)) !important;
-        padding-right: max(0px, env(safe-area-inset-right)) !important;
-        padding-top: max(0px, env(safe-area-inset-top)) !important;
-        padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
-    }
-}
-
-/* أو تجاهل المسافات تماماً (للتطبيقات المثبتة) */
-@media (display-mode: standalone) {
-    body {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    .widget {
-        border-radius: 0 !important;
-        padding: 2% !important;
-    }
-}
   .clickable-date { cursor: pointer; transition: opacity 0.1s; }
   .clickable-date:active { opacity: 0.65; }
   .day-name-ar {
