@@ -13,29 +13,64 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; min-width: 0; height: 100%; overflow: hidden; position: relative; }
+  html, body { width: 100%; min-height: 100%; min-width: 0; height: 100%; overflow: hidden; position: relative; }
   body {
     background: #1a2a3a;
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Cairo', sans-serif;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
   }
   .widget {
     background: #ffffff;
-    width: 100%; height: 100%;
+    width: 100vw; height: 100vh;
     min-width: 0;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    overflow: hidden;
+    overflow-y: auto;  /* أو auto للسماح بالتمرير إذا لزم الأمر */
+    overflow-x: hidden;
     border: 1px solid #b0bfcf;
     padding: 2% 2% 2%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
+
+   
   }
+
+ /* إزالة المسافات الإضافية للأجهزة الحديثة */
+@supports (padding: max(0px)) {
+    body, .widget {
+        padding-left: max(0px, env(safe-area-inset-left)) !important;
+        padding-right: max(0px, env(safe-area-inset-right)) !important;
+        padding-top: max(0px, env(safe-area-inset-top)) !important;
+        padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+    }
+}
+
+/* أو تجاهل المسافات تماماً (للتطبيقات المثبتة) */
+@media (display-mode: standalone) {
+    body {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .widget {
+        border-radius: 0 !important;
+        padding: 2% !important;
+    }
+}
   .clickable-date { cursor: pointer; transition: opacity 0.1s; }
   .clickable-date:active { opacity: 0.65; }
   .day-name-ar {
@@ -648,7 +683,7 @@
   }
 </style>
 </head>
-<body>
+<body style="margin:0; padding:0; overflow:hidden;">
 <button id="pwaInstallBtn" style="display: none; background-color: #0f766e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-family: inherit; position: fixed; top: 10px; z-index: 1001;">
     تثبيت تطبيق مواقيت الصلاة على جهازك
 </button>
