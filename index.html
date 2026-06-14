@@ -645,29 +645,33 @@
     transform: scale(0.98);
   }
   
-  .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 6px;
-  }
-  
-  .action-btn {
-    width: 100%;
-    background: #eef2f9;
-    border: none;
-    padding: 12px;
-    border-radius: 40px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: 0.2s;
-    color: #1a3a6b;
-  }
+  /* الأزرار أفقية */
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 100px;
+  background: #eef2f9;
+  border: none;
+  padding: 10px 8px;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: 0.2s;
+  color: #1a3a6b;
+  white-space: nowrap;
+}
   
   body.dark-mode .action-btn {
     background: #101c30;
