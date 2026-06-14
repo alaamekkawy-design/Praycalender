@@ -109,7 +109,7 @@
     color: white;
   }
   
-  /* نافذة اختيار المدن المنبثقة (عند الضغط على اسم المدينة في الجدول) */
+  /* نافذة اختيار المدن المنبثقة */
   .city-popup-overlay {
     position: fixed;
     top: 0;
@@ -293,7 +293,7 @@
     gap: 1%;
   }
   
-  /* جدول المواقيت - أفقي في سطر واحد (مدينة واحدة فقط) */
+  /* جدول المواقيت - أفقي في سطر واحد (كما كان في PCW-KEY) */
   .prayer-table {
     width: 100%;
     border-collapse: collapse;
@@ -324,10 +324,6 @@
     font-size: clamp(9px, 2.5vmin, 13px);
     color: #0f3a6b;
     border-left-width: 1px;
-    cursor: pointer;
-  }
-  .prayer-table td:first-child:active {
-    opacity: 0.7;
   }
   .prayer-table td span {
     font-weight: 800;
@@ -1607,12 +1603,7 @@ async function updatePrayerDisplay() {
   tbody.innerHTML = '';
   
   const row = tbody.insertRow();
-  const cityCell = row.insertCell(0);
-  cityCell.innerText = city.name;
-  cityCell.style.cursor = 'pointer';
-  cityCell.style.fontWeight = '800';
-  cityCell.style.backgroundColor = '#f8fafd';
-  cityCell.onclick = () => showCitySelectionPopup();
+  row.insertCell(0).innerText = city.name;
   
   if (rawData && rawData.timings) {
     const t = rawData.timings;
@@ -1624,7 +1615,12 @@ async function updatePrayerDisplay() {
     row.insertCell(6).innerHTML = `<span>${convertTo12HourFormat(t.Isha.slice(0,5))}</span>`;
     prayerData = rawData;
   } else {
-    for (let i = 1; i <= 6; i++) row.insertCell(i).innerHTML = '<span>--:--</span>';
+    row.insertCell(1).innerHTML = '<span>--:--</span>';
+    row.insertCell(2).innerHTML = '<span>--:--</span>';
+    row.insertCell(3).innerHTML = '<span>--:--</span>';
+    row.insertCell(4).innerHTML = '<span>--:--</span>';
+    row.insertCell(5).innerHTML = '<span>--:--</span>';
+    row.insertCell(6).innerHTML = '<span>--:--</span>';
   }
   
   // تنسيق الخلايا
@@ -1635,44 +1631,6 @@ async function updatePrayerDisplay() {
       row.cells[i].style.border = '0.5px solid #c5cfe0';
     }
   }
-}
-
-// نافذة اختيار المدن المنبثقة (عند الضغط على اسم المدينة في الجدول)
-function showCitySelectionPopup() {
-  const existing = document.querySelector('.city-popup-overlay');
-  if (existing) existing.remove();
-  
-  const overlay = document.createElement('div');
-  overlay.className = 'city-popup-overlay';
-  
-  const card = document.createElement('div');
-  card.className = 'city-popup-card';
-  
-  card.innerHTML = `
-    <div class="city-popup-header">اختر مدينة</div>
-    <div class="city-list" id="cityList"></div>
-    <button class="city-close-btn" id="closeCityPopup">إغلاق</button>
-  `;
-  
-  const cityList = card.querySelector('#cityList');
-  CITIES.forEach((city, i) => {
-    const option = document.createElement('div');
-    option.className = 'city-option';
-    option.textContent = city.name;
-    option.onclick = async () => {
-      currentCity = i;
-      await refreshWidget(currentDisplayDate);
-      updateCityBarActive();
-      overlay.remove();
-    };
-    cityList.appendChild(option);
-  });
-  
-  card.querySelector('#closeCityPopup').onclick = () => overlay.remove();
-  
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 }
 
 async function refreshWidget(targetDate) {
@@ -1688,14 +1646,6 @@ async function refreshWidget(targetDate) {
     await loadWeather();
   } catch(e) { console.error(e); }
   isLoading = false;
-}
-
-function updateCityBarActive() {
-  const btns = document.querySelectorAll('.city-btn');
-  btns.forEach((btn, i) => {
-    if (i === currentCity) btn.classList.add('active');
-    else btn.classList.remove('active');
-  });
 }
 
 // ======================== الطقس ========================
@@ -1910,7 +1860,7 @@ async function saveAsImage(withZodiac) {
     const cityData = CITIES[i];
     const cityRaw = await fetchPrayerTimesRaw(date, cityData);
     tableHtml += `<tr>`;
-    tableHtml += `<td style="font-weight:800;">${cityData.name}</tr>`;
+    tableHtml += `<td style="font-weight:800;">${cityData.name}</td>`;
     if (cityRaw && cityRaw.timings) {
       const t = cityRaw.timings;
       tableHtml += `<td>${convertTo12HourFormat(t.Fajr.slice(0,5))}</td>`;
@@ -2148,7 +2098,8 @@ function buildCityBar() {
     btn.textContent = city.name;
     btn.onclick = async () => {
       currentCity = i;
-      updateCityBarActive();
+      document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       await refreshWidget(currentDisplayDate);
     };
     bar.appendChild(btn);
