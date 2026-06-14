@@ -40,6 +40,80 @@
     justify-content: space-between;
     position: relative;
   }
+  
+  /* الأزرار العلوية */
+  .top-buttons {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+  }
+  
+  .top-btn {
+    background: #1a3a6b;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  
+  .top-btn:active {
+    transform: scale(0.92);
+    opacity: 0.8;
+  }
+  
+  body.dark-mode .top-btn {
+    background: #2a5298;
+    color: #e8f0ff;
+  }
+  
+  /* شريط الأدوات السفلي */
+  .bottom-toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 8px 0 5px;
+    padding: 5px;
+  }
+  
+  .bottom-btn {
+    background: #1a3a6b;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  
+  .bottom-btn:active {
+    transform: scale(0.92);
+    opacity: 0.8;
+  }
+  
+  body.dark-mode .bottom-btn {
+    background: #2a5298;
+    color: #e8f0ff;
+  }
+  
   .clickable-date { cursor: pointer; transition: opacity 0.1s; }
   .clickable-date:active { opacity: 0.65; }
   .day-name-ar {
@@ -141,7 +215,7 @@
     white-space: nowrap;
   }
   .table-footer-container {
-   margin-top: 2vw;
+    margin-top: 2vw;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -239,6 +313,7 @@
     text-overflow: ellipsis;
     flex-shrink: 0;
   }
+  
   .next-prayer-box {
     background: #1a3a6b;
     border-radius: 8px;
@@ -290,46 +365,6 @@
     color: #6a90c0;
   }
   body.dark-mode .next-prayer-box { background: #0a1628; }
-
-  #locationBtn {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: #1a3a6b;
-    border: none;
-    font-size: clamp(16px, 4vmin, 22px);
-    cursor: pointer;
-    z-index: 10;
-    padding: 6px 10px;
-    border-radius: 30px;
-    color: white;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  #locationBtn:active { transform: scale(0.95); opacity: 0.8; }
-  body.dark-mode #locationBtn {
-    background: #2a5298;
-    color: #e8f0ff;
-  }
-
-  #darkToggle {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: none;
-    border: none;
-    font-size: clamp(12px, 3vmin, 16px);
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    z-index: 10;
-    padding: 2px 4px;
-  }
-  #darkToggle:hover { opacity: 1; }
   
   /* زر التثبيت */
   #pwaInstallBtn {
@@ -501,8 +536,11 @@
 <button id="pwaInstallBtn" style="display: none;">📱 تثبيت التطبيق</button>
 
 <div class="widget" id="widget">
-  <button id="locationBtn" title="الموقع والإعدادات">📍 الموقع</button>
-  <button id="darkToggle" title="تبديل الوضع الليلي">🌙</button>
+  <!-- الأزرار العلوية -->
+  <div class="top-buttons">
+    <button id="settingsBtn" class="top-btn" title="الإعدادات">⚙️</button>
+    <button id="darkToggle" class="top-btn" title="تبديل الوضع الليلي">🌙</button>
+  </div>
   
   <div class="day-name-ar clickable-date" id="dayAr">...</div>
   <div class="day-name-en clickable-date" id="dayEn">...</div>
@@ -546,6 +584,12 @@
       <thead><tr><th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th></tr></thead>
       <tbody id="prayerBody"></tbody>
     </table>
+    
+    <!-- شريط الأدوات السفلي -->
+    <div class="bottom-toolbar">
+      <button id="locationBtn" class="bottom-btn" title="الموقع">📍</button>
+    </div>
+    
     <div class="footer">
       <span onclick="location.reload();" style="cursor:pointer;">Mekkawy | المذهب الشافعي | تقويم هيئة المساحة المصرية</span>
     </div>
@@ -746,29 +790,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // تهيئة GPS
+    // تهيئة GPS - ربط الزر الجديد في الأسفل
     if (window.GPSLocation) {
         window.GPSLocation.init({
             autoGetLocation: false
         });
     } else {
-        console.log('⚠️ GPSLocation غير متاح');
+        // ربط يدوي لزر الموقع
         const locationBtn = document.getElementById('locationBtn');
         if (locationBtn) {
             locationBtn.addEventListener('click', () => {
-                alert('جاري تحديث الموقع...');
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (pos) => {
-                            alert(`خط العرض: ${pos.coords.latitude}\nخط الطول: ${pos.coords.longitude}`);
+                            alert(`📍 موقعك الحالي:\nخط العرض: ${pos.coords.latitude}\nخط الطول: ${pos.coords.longitude}`);
                         },
-                        () => alert('تعذر تحديد الموقع')
+                        () => alert('❌ تعذر تحديد الموقع')
                     );
                 } else {
                     alert('المتصفح لا يدعم تحديد الموقع');
                 }
             });
         }
+    }
+    
+    // زر الإعدادات (في الأعلى يسار)
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            // هنا سيتم إضافة وظائف الإعدادات لاحقاً
+            alert('⚙️ نافذة الإعدادات - سيتم إضافتها قريباً');
+        });
     }
 });
 </script>
