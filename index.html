@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; min-width: 0; height: 100%; overflow: hidden; }
+  html, body { width: 100%; min-width: 0; height: 100%; overflow: hidden; position: relative; }
   body {
     background: #1a2a3a;
     display: flex;
@@ -551,6 +551,59 @@
     font-weight: bold; cursor: pointer;
   }
   .picker-actions button.outline { background: #e0e5ec; color: #1a3a6b; }
+
+  /* ========== AZAN OVERLAY ========== */
+  #azanOverlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2147483647;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  .azan-card {
+    background: linear-gradient(135deg, #1a3a6b 0%, #0f2a4a 100%);
+    border-radius: 32px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    max-width: 300px;
+    width: 85%;
+    border: 1px solid rgba(255,215,0,0.3);
+    animation: fadeInUp 0.4s ease-out;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .azan-icon { font-size: 64px; margin-bottom: 15px; }
+  .azan-label { color: #f0c040; font-family: 'Amiri', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .azan-name { color: #ffffff; font-family: 'Amiri', serif; font-size: 42px; font-weight: 800; margin-bottom: 30px; }
+  .azan-stop-btn {
+    background: #f0c040;
+    border: none;
+    color: #1a3a6b;
+    padding: 12px 35px;
+    border-radius: 60px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
 </style>
 </head>
 <body>
@@ -785,82 +838,28 @@
   function unlockAudio() { if(audioUnlocked) return; audioUnlocked=true; try{ const ctx=new(AudioContext||webkitAudioContext)(); const buf=ctx.createBuffer(1,1,22050); const src=ctx.createBufferSource(); src.buffer=buf; src.connect(ctx.destination); src.start(0); ctx.resume(); }catch(e){} }
   document.addEventListener('click', unlockAudio, { once: true }); document.addEventListener('touchstart', unlockAudio, { once: true });
   function stopAzan() { if(azanAudio){ azanAudio.pause(); azanAudio.currentTime=0; azanAudio=null; } const ov=document.getElementById('azanOverlay'); if(ov) ov.remove(); }
- function showAzanOverlay(prayerName) {
+  function showAzanOverlay(prayerName) {
     // إزالة أي overlay موجود مسبقاً
     const existingOverlay = document.getElementById('azanOverlay');
     if (existingOverlay) existingOverlay.remove();
-    
+
     // إنشاء الـ overlay
     const overlay = document.createElement('div');
     overlay.id = 'azanOverlay';
-    
-    // ستايل مضمون للعمل على جميع الأجهزة (خصوصاً أندرويد)
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 99999;
-        direction: rtl;
-        font-family: 'Cairo', sans-serif;
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-    `;
-    
+
     // محتوى الـ overlay
     overlay.innerHTML = `
-        <div style="
-            background: linear-gradient(135deg, #1a3a6b 0%, #0f2a4a 100%);
-            border-radius: 32px;
-            padding: 40px 30px;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            max-width: 300px;
-            width: 85%;
-            border: 1px solid rgba(255,215,0,0.3);
-            animation: fadeInUp 0.4s ease-out;
-        ">
-            <div style="font-size: 64px; margin-bottom: 15px;">🕌</div>
-            <div style="color: #f0c040; font-family: 'Amiri', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px;">حان وقت صلاة</div>
-            <div style="color: #ffffff; font-family: 'Amiri', serif; font-size: 42px; font-weight: 800; margin-bottom: 30px;">${prayerName}</div>
-            <button id="stopAzanBtn" style="
-                background: #f0c040;
-                border: none;
-                color: #1a3a6b;
-                padding: 12px 35px;
-                border-radius: 60px;
-                font-size: 18px;
-                font-weight: 800;
-                cursor: pointer;
-                transition: transform 0.2s;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            ">⏹ إيقاف الأذان</button>
+        <div class="azan-card">
+            <div class="azan-icon">🕌</div>
+            <div class="azan-label">حان وقت صلاة</div>
+            <div class="azan-name">${prayerName}</div>
+            <button id="stopAzanBtn" class="azan-stop-btn">⏹ إيقاف الأذان</button>
         </div>
     `;
-    
-    // إضافة animation باستخدام CSS keyframes
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    document.body.appendChild(overlay);
-    
+
+    // إضافة الـ overlay على عنصر الصفحة الجذري لتجنب مشاكل overflow/position في WebView بالموبايل
+    document.documentElement.appendChild(overlay);
+
     // إضافة حدث الإغلاق (لأجهزة اللمس والماوس معاً)
     const stopBtn = document.getElementById('stopAzanBtn');
     if (stopBtn) {
@@ -870,7 +869,7 @@
             stopAzan();
         });
     }
-    
+
     // إغلاق عند النقر على الخلفية
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
@@ -883,8 +882,8 @@
             stopAzan();
         }
     });
-} 
- async function playAlert(prayerName){ unlockAudio(); stopAzan(); showAzanOverlay(prayerName||'الصلاة'); for(const url of AZAN_URLS_LIST){ try{ const audio=new Audio(); audio.volume=1.0; audio.src=url; azanAudio=audio; await audio.play(); audio.addEventListener('ended',()=>{ azanAudio=null; const ol=document.getElementById('azanOverlay'); if(ol) ol.remove(); }); return; }catch(e){ console.warn(e); azanAudio=null; } } try{ const ctx=new(AudioContext||webkitAudioContext)(); await ctx.resume(); [880,660,770,880].forEach((freq,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=freq; const t0=ctx.currentTime+i*0.7; g.gain.setValueAtTime(0.4,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); o.start(t0); o.stop(t0+0.6); }); }catch(e){} }
+  }
+  async function playAlert(prayerName){ unlockAudio(); stopAzan(); showAzanOverlay(prayerName||'الصلاة'); for(const url of AZAN_URLS_LIST){ try{ const audio=new Audio(); audio.volume=1.0; audio.src=url; azanAudio=audio; await audio.play(); audio.addEventListener('ended',()=>{ azanAudio=null; const ol=document.getElementById('azanOverlay'); if(ol) ol.remove(); }); return; }catch(e){ console.warn(e); azanAudio=null; } } try{ const ctx=new(AudioContext||webkitAudioContext)(); await ctx.resume(); [880,660,770,880].forEach((freq,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=freq; const t0=ctx.currentTime+i*0.7; g.gain.setValueAtTime(0.4,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); o.start(t0); o.stop(t0+0.6); }); }catch(e){} }
   
   function updateCountdown(){ /* نفس الكود الأصلي مبسط */ if(!isToday()){ const s=document.getElementById('nextPrayerSection'); if(s) s.style.display='none'; return; } const s2=document.getElementById('nextPrayerSection'); if(s2) s2.style.display=''; if(!prayerData||!prayerData.timings) return; const now=new Date(); const curMin=now.getHours()*60+now.getMinutes(); const curSec=now.getSeconds(); const t=prayerData.timings; const o=settings.offsets; const list=[{key:'fajr',name:'الفجر',mins:toMins(t.Fajr,o.fajr),disp:fmtTime(t.Fajr,o.fajr)},{key:'sunrise',name:'الشروق',mins:toMins(t.Sunrise,o.sunrise),disp:fmtTime(t.Sunrise,o.sunrise)},{key:'dhuhr',name:'الظهر',mins:toMins(t.Dhuhr,o.dhuhr),disp:fmtTime(t.Dhuhr,o.dhuhr)},{key:'asr',name:'العصر',mins:toMins(t.Asr,o.asr),disp:fmtTime(t.Asr,o.asr)},{key:'maghrib',name:'المغرب',mins:toMins(t.Maghrib,o.maghrib),disp:fmtTime(t.Maghrib,o.maghrib)},{key:'isha',name:'العشاء',mins:toMins(t.Isha,o.isha),disp:fmtTime(t.Isha,o.isha)}].filter(p=>p.mins!==null); if(list.length===0) return; const curTotalSec=curMin*60+curSec; let next=list.find(p=>p.mins*60>curTotalSec)||list[0]; let diffSec=next.mins*60-curTotalSec; if(diffSec<=0) diffSec+=24*3600; const hrs=Math.floor(diffSec/3600), mins=Math.floor((diffSec%3600)/60), secs=diffSec%60; document.getElementById('nextPrayerName').textContent=next.name; document.getElementById('nextPrayerTime').textContent=next.disp; document.getElementById('countdownTimer').textContent=`${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; if(hrs===0&&mins===0&&secs<=4&&alertedFor!==next.key){ alertedFor=next.key; playAlert(next.name); } if(diffSec>60&&alertedFor===next.key) alertedFor=null; }
   
