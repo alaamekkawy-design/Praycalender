@@ -1554,14 +1554,24 @@ function updateCityBarActive() {
 // ======================== الطقس ========================
 const WEATHER_API_KEY = '819c643e98f045faadd50730260106';
 
-function getWindDirectionShort(deg) {
-  const directions = ['↑ ش', '↗ شش', '→ ش', '↘ جش', '↓ ج', '↙ جغ', '← غ', '↖ شغ'];
-  return directions[Math.round(deg / 45) % 8];
-}
-
 async function loadWeather() {
   const city = CITIES[currentCity];
+  const date = getViewDate();
   const weatherBox = document.getElementById('weatherBox');
+  
+  // التحقق إذا كان التاريخ المختار هو اليوم الحالي
+  const today = new Date();
+  const isCurrentDay = date.toDateString() === today.toDateString();
+  
+  if (!isCurrentDay) {
+    weatherBox.innerHTML = `
+      <div class="weather-loading" style="text-align:center; padding:15px;">
+        ⚠️ الطقس متاح لليوم الحالي فقط<br>
+        <span style="font-size:10px; opacity:0.7;">اختر اليوم الحالي لعرض حالة الطقس</span>
+      </div>
+    `;
+    return;
+  }
   
   try {
     weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
@@ -1620,7 +1630,6 @@ async function loadWeather() {
     weatherBox.innerHTML = '<div class="weather-loading">⚠️ تعذر تحميل الطقس</div>';
   }
 }
-
 // ======================== منتقي التاريخ (Date Picker) ========================
 function openDatePicker() { 
   activePickerDate = new Date(currentDisplayDate); 
