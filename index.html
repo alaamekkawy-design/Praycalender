@@ -468,7 +468,7 @@
     color: #1a3a6b;
   }
   body.dark-mode .coord-value {
-    color: #c0d8ff;
+    color: #cde1ff;
   }
   .google-link {
     background: #1a73e8;
@@ -796,12 +796,12 @@ function showLocationPopup() {
           <div class="coord-box">
             <div class="coord-label">خط العرض</div>
             <div class="coord-value" id="popupLat">${LOCATION_DATA.latitude}°</div>
-            <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.latitudeDMS}</div>
+            <div class="coord-value" style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.latitudeDMS}</div>
           </div>
           <div class="coord-box">
             <div class="coord-label">خط الطول</div>
             <div class="coord-value" id="popupLng">${LOCATION_DATA.longitude}°</div>
-            <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
+            <div class="coord-value" style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
           </div>
         </div>
         <a href="${getGoogleMapsLink()}" target="_blank" class="google-link" ${locationIsLive ? '' : 'style="opacity:0.5;pointer-events:none;"'}>
