@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> 
-<title>مواقيت الصلاة - مع أذان يعمل</title>
+<title>مواقيت الصلاة - مع شاشة تنبيه</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -23,7 +23,81 @@
     border-radius: 20px;
     padding: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    position: relative;
   }
+  
+  /* شاشة التنبيه - تظهر كطبقة منبثقة */
+  .alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .alert-card {
+    background: linear-gradient(135deg, #ffeb3b, #ffc107);
+    color: #1a3a6b;
+    border-radius: 30px;
+    padding: 40px 30px;
+    text-align: center;
+    max-width: 350px;
+    width: 90%;
+    animation: shake 0.5s ease;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-10px); }
+    75% { transform: translateY(10px); }
+  }
+  
+  .alert-card h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+  }
+  
+  .alert-card .prayer-name {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 20px 0;
+  }
+  
+  .alert-card .azan-status {
+    font-size: 18px;
+    margin: 15px 0;
+    color: #d32f2f;
+  }
+  
+  .stop-alert-btn {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.2s;
+  }
+  
+  .stop-alert-btn:active { transform: scale(0.95); }
+  
+  /* البطاقة الرئيسية */
   .prayer-card {
     background: linear-gradient(135deg, #1a3a6b, #0f2a4a);
     color: white;
@@ -32,19 +106,23 @@
     margin-bottom: 20px;
     text-align: center;
   }
+  
   .next-prayer-label {
     font-size: 14px;
     opacity: 0.8;
   }
+  
   .next-prayer-name {
     font-size: 32px;
     font-weight: bold;
     margin: 10px 0;
   }
+  
   .next-prayer-time {
     font-size: 24px;
     color: #f0c040;
   }
+  
   .countdown-timer {
     font-size: 36px;
     font-weight: bold;
@@ -54,42 +132,8 @@
     padding: 10px;
     border-radius: 12px;
   }
-  .alert-box {
-    background: #ffeb3b;
-    color: #1a3a6b;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    text-align: center;
-    display: none;
-    animation: shake 0.5s ease;
-  }
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
-  }
-  .alert-box h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
-  }
-  .alert-box p {
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
-  .stop-alert-btn {
-    background: #d32f2f;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .stop-alert-btn:active { transform: scale(0.95); }
-  .test-btn {
+  
+  .test-btn, .test-alert-btn {
     background: #4caf50;
     color: white;
     border: none;
@@ -98,27 +142,42 @@
     font-size: 16px;
     cursor: pointer;
     margin-top: 10px;
+    margin-left: 5px;
   }
+  
+  .test-alert-btn {
+    background: #ff9800;
+  }
+  
   .prayer-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
   }
+  
   .prayer-table th, .prayer-table td {
     padding: 10px;
     text-align: center;
     border: 1px solid #ddd;
   }
+  
   .prayer-table th {
     background: #1a3a6b;
     color: white;
   }
+  
   .date-display {
     text-align: center;
     margin-bottom: 20px;
     font-size: 20px;
     font-weight: bold;
     color: #1a3a6b;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
   }
 </style>
 </head>
@@ -127,20 +186,15 @@
 <div class="container">
   <div class="date-display" id="dateDisplay">تحميل...</div>
   
-  <!-- شاشة التنبيه المنبثقة -->
-  <div class="alert-box" id="alertBox">
-    <h3>🕌 وقت الصلاة</h3>
-    <p id="alertPrayerName">الفجر</p>
-    <p>🔊 يتم تشغيل الأذان...</p>
-    <button class="stop-alert-btn" id="stopAlertBtn">⏹️ إيقاف التنبيه</button>
-  </div>
-  
   <div class="prayer-card">
     <div class="next-prayer-label">الصلاة القادمة</div>
     <div class="next-prayer-name" id="nextPrayerName">---</div>
     <div class="next-prayer-time" id="nextPrayerTime">---</div>
     <div class="countdown-timer" id="countdownTimer">--:--:--</div>
-    <button class="test-btn" id="testAzanBtn">🔊 اختبار الأذان</button>
+    <div class="button-group">
+      <button class="test-btn" id="testAzanBtn">🔊 اختبار الأذان</button>
+      <button class="test-alert-btn" id="testAlertBtn">🟡 اختبار شاشة التنبيه</button>
+    </div>
   </div>
   
   <table class="prayer-table">
@@ -149,6 +203,16 @@
     </thead>
     <tbody id="prayerTimesBody"></tbody>
   </table>
+</div>
+
+<!-- شاشة التنبيه المنبثقة -->
+<div class="alert-overlay" id="alertOverlay">
+  <div class="alert-card">
+    <h2>🕌 وقت الصلاة</h2>
+    <div class="prayer-name" id="alertPrayerName">الفجر</div>
+    <div class="azan-status" id="azanStatus">🔊 يتم تشغيل الأذان...</div>
+    <button class="stop-alert-btn" id="stopAlertBtn">⏹️ إيقاف التنبيه</button>
+  </div>
 </div>
 
 <script>
@@ -186,6 +250,7 @@ function stopAzan() {
     currentAudio.currentTime = 0;
     currentAudio = null;
   }
+  document.getElementById('azanStatus').innerHTML = '🔇 تم إيقاف الأذان';
   console.log("🔇 تم إيقاف الأذان");
 }
 
@@ -195,23 +260,25 @@ async function playAzan(isTest = false) {
   
   if (isTest) {
     console.log("🔊 تشغيل اختبار الأذان");
+    document.getElementById('azanStatus').innerHTML = '🔊 تشغيل اختبار الأذان...';
+  } else {
+    document.getElementById('azanStatus').innerHTML = '🔊 يتم تشغيل الأذان...';
   }
   
   // المحاولة الأولى: الملف المحلي azan.mp3
   const audioUrls = [
-    './azan.mp3',        // نفس المجلد
-    '/azan.mp3',         // جذر الموقع
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' // رابط تجريبي احتياطي
+    './azan.mp3',
+    '/azan.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
   ];
   
   for (const url of audioUrls) {
     try {
       console.log(`🔄 محاولة تشغيل: ${url}`);
       const audio = new Audio(url);
-      audio.loop = true; // الاستمرار في التكرار
+      audio.loop = true;
       audio.volume = 0.8;
       
-      // ننتظر ثانية لتحميل الملف
       await new Promise((resolve, reject) => {
         audio.oncanplaythrough = () => resolve();
         audio.onerror = () => reject();
@@ -221,6 +288,7 @@ async function playAzan(isTest = false) {
       await audio.play();
       currentAudio = audio;
       console.log(`✅ تم تشغيل الأذان بنجاح من: ${url}`);
+      document.getElementById('azanStatus').innerHTML = '🔊 الأذان يعمل... اضغط إيقاف للإسكات';
       return true;
     } catch(e) {
       console.log(`❌ فشل: ${url}`);
@@ -228,30 +296,36 @@ async function playAzan(isTest = false) {
   }
   
   console.log("⚠️ فشل تشغيل الأذان من جميع المصادر");
+  document.getElementById('azanStatus').innerHTML = '⚠️ فشل تشغيل الأذان (ملف الصوت غير موجود)';
   return false;
 }
 
 // ========== عرض شاشة التنبيه ==========
 function showAlertScreen(prayerName) {
-  if (alertActive) return; // التنبيه ظاهر بالفعل
+  if (alertActive) {
+    console.log("التنبيه ظاهر بالفعل");
+    return;
+  }
   
+  console.log(`🔔 عرض شاشة التنبيه لصلاة: ${prayerName}`);
   alertActive = true;
-  const alertBox = document.getElementById('alertBox');
+  const overlay = document.getElementById('alertOverlay');
   document.getElementById('alertPrayerName').innerText = prayerName;
-  alertBox.style.display = 'block';
+  overlay.style.display = 'flex';
   
   // تشغيل الأذان
   playAzan(false);
   
-  // اهتزاز الشاشة إذا كان مدعوماً
+  // اهتزاز الشاشة
   if (navigator.vibrate) {
     navigator.vibrate([500, 300, 500]);
   }
 }
 
 function hideAlertScreen() {
+  console.log("🔇 إخفاء شاشة التنبيه");
   alertActive = false;
-  document.getElementById('alertBox').style.display = 'none';
+  document.getElementById('alertOverlay').style.display = 'none';
   stopAzan();
 }
 
@@ -281,7 +355,6 @@ async function fetchPrayerTimes() {
   return false;
 }
 
-// عرض المواقيت في الجدول
 function displayPrayerTimes() {
   if (!currentPrayerTimes) return;
   
@@ -300,7 +373,6 @@ function displayPrayerTimes() {
   prayers.forEach(p => {
     const row = tbody.insertRow();
     row.insertCell(0).innerHTML = `<strong>${p.name}</strong>`;
-    // تحويل إلى صيغة 12 ساعة
     const [h, m] = p.time.split(':');
     const hour12 = parseInt(h) % 12 || 12;
     const ampm = parseInt(h) >= 12 ? 'م' : 'ص';
@@ -319,56 +391,56 @@ function updateCountdown() {
   
   const prayers = [
     { name: 'الفجر', time: currentPrayerTimes.Fajr.slice(0,5), key: 'fajr' },
-    { name: 'الشروق', time: currentPrayerTimes.Sunrise.slice(0,5), key: 'sunrise' },
     { name: 'الظهر', time: currentPrayerTimes.Dhuhr.slice(0,5), key: 'dhuhr' },
     { name: 'العصر', time: currentPrayerTimes.Asr.slice(0,5), key: 'asr' },
     { name: 'المغرب', time: currentPrayerTimes.Maghrib.slice(0,5), key: 'maghrib' },
     { name: 'العشاء', time: currentPrayerTimes.Isha.slice(0,5), key: 'isha' }
   ];
   
-  // حساب وقت كل صلاة بالثواني
   const prayerTimesInSeconds = prayers.map(p => {
     const [h, m] = p.time.split(':');
     return { ...p, totalSeconds: parseInt(h) * 3600 + parseInt(m) * 60 };
   });
   
-  // العثور على الصلاة القادمة
   let nextPrayer = prayerTimesInSeconds.find(p => p.totalSeconds > currentTotal);
   if (!nextPrayer) {
-    // إذا لم نجد، نأخذ أول صلاة في اليوم التالي
     nextPrayer = prayerTimesInSeconds[0];
     let diff = (nextPrayer.totalSeconds + 86400) - currentTotal;
     updateDisplay(nextPrayer, diff);
+    
+    // التحقق من وقت الأذان (لآخر صلاة في اليوم)
+    if (diff <= 5 && lastAlertedPrayer !== nextPrayer.key && !alertActive) {
+      console.log(`🔔 حان وقت صلاة ${nextPrayer.name}`);
+      lastAlertedPrayer = nextPrayer.key;
+      showAlertScreen(nextPrayer.name);
+    }
     return;
   }
   
   let diff = nextPrayer.totalSeconds - currentTotal;
   updateDisplay(nextPrayer, diff);
   
-  // التحقق من وقت الأذان (في حدود 5 ثوانٍ)
+  // التحقق من وقت الأذان - عندما يتبقى 5 ثوانٍ أو أقل
   if (diff <= 5 && lastAlertedPrayer !== nextPrayer.key && !alertActive) {
     console.log(`🔔 حان وقت صلاة ${nextPrayer.name} (الفرق: ${diff} ثانية)`);
     lastAlertedPrayer = nextPrayer.key;
     showAlertScreen(nextPrayer.name);
   }
   
-  // إذا مر أكثر من دقيقة على الأذان وأغلق المستخدم التنبيه، نسمح بإعادة التنبيه للصلاة التالية فقط
-  if (diff > 60 && lastAlertedPrayer === nextPrayer.key && !alertActive) {
-    // لا نفعل شيئاً، ننتظر الصلاة التالية
+  // إعادة تعيين التنبيه بعد مرور دقيقة من الصلاة
+  if (diff < -60 || diff > 3600) {
+    lastAlertedPrayer = null;
   }
 }
 
 function updateDisplay(prayer, diffSeconds) {
-  // تحديث اسم ووقت الصلاة القادمة
   document.getElementById('nextPrayerName').innerHTML = prayer.name;
   
-  // تحويل الوقت إلى صيغة 12 ساعة للعرض
   const [h, m] = prayer.time.split(':');
   const hour12 = parseInt(h) % 12 || 12;
   const ampm = parseInt(h) >= 12 ? 'م' : 'ص';
   document.getElementById('nextPrayerTime').innerHTML = `${hour12}:${m} ${ampm}`;
   
-  // تحديث العد التنازلي
   const hours = Math.floor(diffSeconds / 3600);
   const minutes = Math.floor((diffSeconds % 3600) / 60);
   const seconds = diffSeconds % 60;
@@ -386,9 +458,15 @@ function setupButtons() {
     }
   });
   
+  // زر اختبار شاشة التنبيه (يظهر الشاشة فوراً للاختبار)
+  document.getElementById('testAlertBtn').addEventListener('click', () => {
+    console.log("🟡 اختبار شاشة التنبيه");
+    showAlertScreen("اختبار");
+  });
+  
   // زر إيقاف التنبيه
   document.getElementById('stopAlertBtn').addEventListener('click', () => {
-    console.log("⏹️ تم إيقاف التنبيه");
+    console.log("⏹️ تم الضغط على إيقاف التنبيه");
     hideAlertScreen();
   });
 }
@@ -396,17 +474,16 @@ function setupButtons() {
 // ========== تشغيل المؤقت ==========
 function startCountdownTimer() {
   if (countdownInterval) clearInterval(countdownInterval);
-  updateCountdown(); // تشغيل فوري
-  countdownInterval = setInterval(updateCountdown, 500); // تحديث كل نصف ثانية
+  updateCountdown();
+  countdownInterval = setInterval(updateCountdown, 500);
 }
 
-// ========== تفعيل الصوت (للتغلب على قيود المتصفح) ==========
+// ========== تفعيل الصوت ==========
 let audioUnlocked = false;
 function unlockAudioOnUserInteraction() {
   if (audioUnlocked) return;
   audioUnlocked = true;
-  console.log("🔓 تم تفعيل الصوت بتفاعل المستخدم");
-  // إنشاء سياق صوتي فارغ لتأكيد التفعيل
+  console.log("🔓 تم تفعيل الصوت");
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     ctx.resume();
@@ -414,7 +491,6 @@ function unlockAudioOnUserInteraction() {
   } catch(e) {}
 }
 
-// إضافة مستمعي الأحداث لتفعيل الصوت
 document.body.addEventListener('click', unlockAudioOnUserInteraction);
 document.body.addEventListener('touchstart', unlockAudioOnUserInteraction);
 
@@ -423,21 +499,17 @@ async function init() {
   updateDateDisplay();
   setupButtons();
   
-  // عرض رسالة للمستخدم
-  console.log("🕌 تطبيق مواقيت الصلاة - انتظر تحميل البيانات...");
+  console.log("🕌 تطبيق مواقيت الصلاة - جاري التحميل...");
   
   const success = await fetchPrayerTimes();
   if (success) {
     startCountdownTimer();
-    console.log("✅ التطبيق جاهز، سيتم التنبيه عند وقت الصلاة");
+    console.log("✅ التطبيق جاهز");
   } else {
-    console.log("❌ فشل تحميل المواقيت، تأكد من اتصال الإنترنت");
-    document.getElementById('nextPrayerName').innerHTML = "خطأ";
-    document.getElementById('countdownTimer').innerHTML = "تحقق من الإنترنت";
+    console.log("❌ فشل تحميل المواقيت");
   }
 }
 
-// بدء التطبيق
 init();
 </script>
 </body>
