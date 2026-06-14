@@ -655,14 +655,57 @@
 </div>
 
 <script>
-// ======================== بيانات الموقع الثابتة (كما في الصورة المرفقة) ========================
-const LOCATION_DATA = {
-  latitude: 30.13836,
-  latitudeDMS: "30°8'18.10104\" N",
-  longitude: 31.38092,
-  longitudeDMS: "31°22'51.3228\" E",
-  address: "49QJ+9CJ, Keblet Al Masged, Berket an Nasr, Al Salam First, Cairo Governorate 4642140, Egypt"
+// ======================== بيانات الموقع (افتراضية، تُستبدل ببيانات GPS الفعلية) ========================
+const DEFAULT_LOCATION_DATA = {
+  latitude: --------,
+  latitudeDMS: "--------\" N",
+  longitude: ----------,
+  longitudeDMS: "---------\" E",
+  address: "------Egypt"
 };
+
+let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
+let locationIsLive = false;
+
+// تحويل من درجات عشرية إلى صيغة DMS (درجات/دقائق/ثواني)
+function toDMS(value, isLat) {
+  const abs = Math.abs(value);
+  const deg = Math.floor(abs);
+  const minFloat = (abs - deg) * 60;
+  const min = Math.floor(minFloat);
+  const sec = (minFloat - min) * 60;
+  const dir = isLat ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
+  return `${deg}°${min}'${sec.toFixed(4)}" ${dir}`;
+}
+
+// جلب الموقع الحالي عبر GPS الجهاز
+function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('المتصفح لا يدعم تحديد الموقع'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve(pos.coords),
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+}
+
+// تحويل الإحداثيات إلى عنوان عبر خدمة Reverse Geocoding
+async function reverseGeocode(lat, lng) {
+  try {
+    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      headers: { 'Accept-Language': 'ar' }
+    });
+    const data = await resp.json();
+    if (data && data.display_name) return data.display_name;
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 
 // إنشاء رابط خرائط جوجل
 function getGoogleMapsLink() {
@@ -681,79 +724,119 @@ function showLocationPopup() {
   const card = document.createElement('div');
   card.className = 'location-popup-card';
 
-  // Header
-  card.innerHTML = `
-    <div class="popup-header">
-      <h3>📍 موقعي الحالي</h3>
-      <button class="close-popup" id="closeLocationPopup">✕</button>
-    </div>
-    <div class="popup-content">
-      <div class="info-row">
-        <div class="info-label">العنوان التفصيلي</div>
-        <div class="info-value" id="popupAddress">${escapeHtml(LOCATION_DATA.address)}</div>
+  function renderCard() {
+    card.innerHTML = `
+      <div class="popup-header">
+        <h3>📍 موقعي الحالي</h3>
+        <button class="close-popup" id="closeLocationPopup">✕</button>
       </div>
-      <div class="coord-row">
-        <div class="coord-box">
-          <div class="coord-label">خط العرض</div>
-          <div class="coord-value" id="popupLat">${LOCATION_DATA.latitude}°</div>
-          <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.latitudeDMS}</div>
+      <div class="popup-content">
+        <div class="info-row">
+          <div class="info-label">العنوان التفصيلي ${locationIsLive ? '(GPS)' : '(افتراضي)'}</div>
+          <div class="info-value" id="popupAddress">${escapeHtml(LOCATION_DATA.address)}</div>
         </div>
-        <div class="coord-box">
-          <div class="coord-label">خط الطول</div>
-          <div class="coord-value" id="popupLng">${LOCATION_DATA.longitude}°</div>
-          <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
+        <div class="coord-row">
+          <div class="coord-box">
+            <div class="coord-label">خط العرض</div>
+            <div class="coord-value" id="popupLat">${LOCATION_DATA.latitude}°</div>
+            <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.latitudeDMS}</div>
+          </div>
+          <div class="coord-box">
+            <div class="coord-label">خط الطول</div>
+            <div class="coord-value" id="popupLng">${LOCATION_DATA.longitude}°</div>
+            <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
+          </div>
         </div>
+        <a href="${getGoogleMapsLink()}" target="_blank" class="google-link">
+          🗺️ فتح في خرائط جوجل
+        </a>
+        <div class="action-buttons">
+          <button class="action-btn" id="copyAddressBtn">📋 نسخ العنوان</button>
+          <button class="action-btn" id="copyCoordsBtn">📍 نسخ الإحداثيات</button>
+          <button class="action-btn" id="shareLocationBtn">📤 مشاركة الموقع</button>
+        </div>
+        <button class="action-btn" id="refreshLocationBtn" style="margin-top:0;">🔄 تحديث الموقع من GPS</button>
       </div>
-      <a href="${getGoogleMapsLink()}" target="_blank" class="google-link">
-        🗺️ فتح في خرائط جوجل
-      </a>
-      <div class="action-buttons">
-        <button class="action-btn" id="copyAddressBtn">📋 نسخ العنوان</button>
-        <button class="action-btn" id="copyCoordsBtn">📍 نسخ الإحداثيات</button>
-        <button class="action-btn" id="shareLocationBtn">📤 مشاركة الموقع</button>
-      </div>
-    </div>
-  `;
+    `;
+    attachCardEvents();
+  }
 
+  function attachCardEvents() {
+    // إغلاق popup
+    const closeBtn = document.getElementById('closeLocationPopup');
+    closeBtn.addEventListener('click', () => overlay.remove());
+
+    // نسخ العنوان
+    document.getElementById('copyAddressBtn').addEventListener('click', async () => {
+      await copyToClipboard(LOCATION_DATA.address, "تم نسخ العنوان ✅");
+    });
+
+    // نسخ الإحداثيات (خط الطول + خط العرض)
+    document.getElementById('copyCoordsBtn').addEventListener('click', async () => {
+      const coordsText = `${LOCATION_DATA.latitude}, ${LOCATION_DATA.longitude}`;
+      await copyToClipboard(coordsText, "تم نسخ الإحداثيات 📍");
+    });
+
+    // مشاركة الموقع (Web Share API)
+    document.getElementById('shareLocationBtn').addEventListener('click', async () => {
+      const shareData = {
+        title: 'موقعي',
+        text: LOCATION_DATA.address,
+        url: getGoogleMapsLink()
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (e) {
+          console.log('مشاركة ملغاة');
+        }
+      } else {
+        // نسخ الرابط كبديل
+        await copyToClipboard(getGoogleMapsLink(), "رابط الموقع منسوخ (المتصفح لا يدعم المشاركة)");
+      }
+    });
+
+    // تحديث الموقع من GPS
+    document.getElementById('refreshLocationBtn').addEventListener('click', () => {
+      fetchLiveLocation();
+    });
+  }
+
+  async function fetchLiveLocation() {
+    const btn = document.getElementById('refreshLocationBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = '⏳ جارٍ تحديد الموقع...';
+    }
+    try {
+      const coords = await getCurrentLocation();
+      const lat = coords.latitude, lng = coords.longitude;
+      const address = await reverseGeocode(lat, lng);
+      LOCATION_DATA = {
+        latitude: Math.round(lat * 100000) / 100000,
+        longitude: Math.round(lng * 100000) / 100000,
+        latitudeDMS: toDMS(lat, true),
+        longitudeDMS: toDMS(lng, false),
+        address: address || DEFAULT_LOCATION_DATA.address
+      };
+      locationIsLive = true;
+      renderCard();
+      showToast('تم تحديث الموقع ✅');
+    } catch (e) {
+      showToast('تعذر تحديد الموقع، تأكد من تفعيل صلاحية الموقع');
+    }
+  }
+
+  renderCard();
   overlay.appendChild(card);
   document.body.appendChild(overlay);
 
-  // إغلاق popup
-  const closeBtn = document.getElementById('closeLocationPopup');
-  closeBtn.addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) overlay.remove();
   });
 
-  // نسخ العنوان
-  document.getElementById('copyAddressBtn').addEventListener('click', async () => {
-    await copyToClipboard(LOCATION_DATA.address, "تم نسخ العنوان ✅");
-  });
-
-  // نسخ الإحداثيات (خط الطول + خط العرض)
-  document.getElementById('copyCoordsBtn').addEventListener('click', async () => {
-    const coordsText = `${LOCATION_DATA.latitude}, ${LOCATION_DATA.longitude}`;
-    await copyToClipboard(coordsText, "تم نسخ الإحداثيات 📍");
-  });
-
-  // مشاركة الموقع (Web Share API)
-  document.getElementById('shareLocationBtn').addEventListener('click', async () => {
-    const shareData = {
-      title: 'موقعي',
-      text: LOCATION_DATA.address,
-      url: getGoogleMapsLink()
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (e) {
-        console.log('مشاركة ملغاة');
-      }
-    } else {
-      // نسخ الرابط كبديل
-      await copyToClipboard(getGoogleMapsLink(), "رابط الموقع منسوخ (المتصفح لا يدعم المشاركة)");
-    }
-  });
+  // جلب الموقع تلقائياً عند فتح النافذة لأول مرة (دون انتظار اللمس)
+  fetchLiveLocation();
 }
 
 // دالة نسخ آمنة مع تنبيه
