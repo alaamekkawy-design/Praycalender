@@ -1552,8 +1552,7 @@ function updateCityBarActive() {
 }
 
 // ======================== الطقس ========================
-// ======================== الطقس ========================
-const WEATHER_KEY = '819c643e98f045faadd50730260106';
+const WEATHER_KEY = '819c643e98f045faadd50730260106';  // ضع مفتاحك هنا
 
 function getWindDirectionShort(deg) {
   const directions = ['↑ ش', '↗ شش', '→ ش', '↘ جش', '↓ ج', '↙ جغ', '← غ', '↖ شغ'];
@@ -1564,10 +1563,10 @@ async function loadWeather() {
   const city = CITIES[currentCity];
   const weatherBox = document.getElementById('weatherBox');
   
+  weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
+  
+  // المحاولة الأولى: WeatherAPI.com (باستخدام المفتاح)
   try {
-    weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
-    
-    // الرابط الأصلي الذي كان يعمل
     const url = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_KEY}&q=${city.lat},${city.lng}&lang=ar`;
     const response = await fetch(url);
     const data = await response.json();
@@ -1614,14 +1613,73 @@ async function loadWeather() {
           </div>
         </div>
       `;
+      return; // نجحت المحاولة الأولى، نخرج من الدالة
+    }
+  } catch(e) {
+    console.log('WeatherAPI.com failed, trying fallback...');
+  }
+  
+  // المحاولة الثانية: wttr.in (بدون مفتاح) - فقط إذا فشل الأول
+  try {
+    const fallbackUrl = `https://wttr.in/${city.lat},${city.lng}?format=j1&lang=ar`;
+    const response = await fetch(fallbackUrl);
+    const data = await response.json();
+    
+    if (data && data.current_condition) {
+      const current = data.current_condition[0];
+      const temp = current.temp_C;
+      const condition = current.lang_ar ? current.lang_ar[0].value : current.weatherDesc[0].value;
+      const humidity = current.humidity;
+      const wind = current.windspeedKmph;
+      const windDir = getWindDirectionShort(parseInt(current.winddirDegree));
+      const visibility = current.visibility;
+      const feelsLike = current.FeelsLikeC;
+      const icon = current.weatherIconUrl ? current.weatherIconUrl[0].value : '';
+      
+      weatherBox.innerHTML = `
+        <div class="weather-city">
+          ${city.name}
+          <span style="font-size:11px; opacity:0.7; margin-right:6px;" title="استخدام خدمة احتياطية (بدون مفتاح)">🔑</span>
+        </div>
+        <div class="weather-main">
+          <div class="weather-temp-section">
+            <div class="weather-temp">${temp}<span class="weather-unit">°</span></div>
+            <div class="weather-condition">${condition}</div>
+          </div>
+          ${icon ? `<img class="weather-icon" src="${icon}" alt="${condition}">` : '<div class="weather-icon">🌡️</div>'}
+        </div>
+        <div class="weather-details">
+          <div class="weather-detail">
+            <div class="weather-wind">
+              <span class="weather-wind-speed">${wind}</span>
+              <span class="weather-wind-dir">${windDir}</span>
+            </div>
+            <div class="weather-detail-lbl">الرياح</div>
+          </div>
+          <div class="weather-detail">
+            <div class="weather-detail-val">${visibility} <span style="font-size:9px;">كم</span></div>
+            <div class="weather-detail-lbl">الرؤية</div>
+          </div>
+          <div class="weather-detail">
+            <div class="weather-detail-val">${humidity}%</div>
+            <div class="weather-detail-lbl">الرطوبة</div>
+          </div>
+          <div class="weather-detail">
+            <div class="weather-detail-val">${feelsLike}°</div>
+            <div class="weather-detail-lbl">الإحساس</div>
+          </div>
+        </div>
+      `;
+      return;
     } else {
       weatherBox.innerHTML = '<div class="weather-loading">⚠️ لا توجد بيانات طقس</div>';
     }
   } catch(e) {
-    console.error('خطأ في الطقس:', e);
+    console.error('All weather APIs failed:', e);
     weatherBox.innerHTML = '<div class="weather-loading">⚠️ تعذر تحميل الطقس</div>';
   }
 }
+
 // ======================== منتقي التاريخ (Date Picker) ========================
 function openDatePicker() { 
   activePickerDate = new Date(currentDisplayDate); 
