@@ -944,6 +944,35 @@ attachEvents();
 startCountdownTimer();
 refreshWidget(new Date());
 </script>
+ <script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('✅ SW registered:', reg))
+            .catch(err => console.error('❌ SW failed:', err));
+    });
+}
+
+let deferredPrompt;
+const installBtn = document.getElementById('pwaInstallBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display = 'block';
+    console.log('✅ زر التثبيت جاهز للظهور');
+});
+
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+    });
+}
+</script>
 </body>
 </html>
 ```
