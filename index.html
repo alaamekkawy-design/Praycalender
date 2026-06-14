@@ -446,6 +446,19 @@
     font-weight: 700;
   }
   
+  .weather-wind {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .weather-wind-speed, .weather-wind-dir {
+    font-weight: 700;
+  }
+  
   .weather-detail-lbl {
     font-size: 9px;
     opacity: 0.7;
@@ -1547,12 +1560,17 @@ function getWindDirectionShort(deg) {
 
 async function loadWeather() {
   const city = CITIES[currentCity];
+  const date = getViewDate();
   const weatherBox = document.getElementById('weatherBox');
   
   try {
     weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
     
-    const url = `https://wttr.in/${city.lat},${city.lng}?format=j1&lang=ar`;
+    // إضافة التاريخ إلى رابط API للحصول على طقس التاريخ المحدد
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const url = `https://wttr.in/${city.lat},${city.lng}?format=j1&lang=ar&date=${year}${month}${day}`;
     const response = await fetch(url);
     const data = await response.json();
     
@@ -1578,7 +1596,10 @@ async function loadWeather() {
         </div>
         <div class="weather-details">
           <div class="weather-detail">
-            <div class="weather-detail-val">${wind} <span style="font-size:9px;">كم/س</span><br>${windDir}</div>
+            <div class="weather-wind">
+              <span class="weather-wind-speed">${wind}</span>
+              <span class="weather-wind-dir">${windDir}</span>
+            </div>
             <div class="weather-detail-lbl">الرياح</div>
           </div>
           <div class="weather-detail">
@@ -1771,7 +1792,6 @@ function buildCityBar() {
       currentCity = i;
       updateCityBarActive();
       await refreshWidget(currentDisplayDate);
-      await loadWeather(); // تحديث الطقس عند تغيير المدينة
     };
     bar.appendChild(btn);
   });
@@ -1791,7 +1811,6 @@ buildCityBar();
 attachEvents();
 startCountdownTimer();
 refreshWidget(new Date());
-loadWeather(); // تحميل الطقس لأول مرة
 setInterval(checkAutoTheme,60000); 
 checkAutoTheme();
 
