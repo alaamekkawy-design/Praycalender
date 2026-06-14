@@ -13,6 +13,7 @@
 <!-- ربط ملفات المساعدة -->
 <script src="install.js" defer></script>
 <script src="location.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
@@ -291,6 +292,8 @@
     min-height: 0;
     gap: 1%;
   }
+  
+  /* جدول المواقيت - يعرض جميع المدن في الصفحة الرئيسية */
   .prayer-table {
     width: 100%;
     border-collapse: collapse;
@@ -321,10 +324,6 @@
     font-size: clamp(9px, 2.5vmin, 13px);
     color: #0f3a6b;
     border-left-width: 1px;
-    cursor: pointer;
-  }
-  .prayer-table td:first-child:active {
-    opacity: 0.7;
   }
   .prayer-table td span {
     font-weight: 800;
@@ -469,7 +468,7 @@
     background: linear-gradient(135deg, #0a1628, #1a3a6b);
   }
   
-  /* التذييل مع زر الموقع بجانب Mekkawy */
+  /* التذييل مع أزرار الموقع والحفظ */
   .footer {
     text-align: center;
     font-family: 'Amiri', serif;
@@ -491,7 +490,7 @@
   .footer span {
     cursor: pointer;
   }
-  .footer .location-icon {
+  .footer .icon-btn {
     background: none;
     border: none;
     font-size: 16px;
@@ -503,10 +502,10 @@
     justify-content: center;
     transition: transform 0.2s;
   }
-  .footer .location-icon:active {
+  .footer .icon-btn:active {
     transform: scale(0.9);
   }
-  body.dark-mode .footer .location-icon {
+  body.dark-mode .footer .icon-btn {
     color: #a8c8f0;
   }
   
@@ -589,7 +588,99 @@
     font-size: 12px;
   }
   
-  /* ========== نافذة الموقع (POPUP) ========== */
+  /* نافذة حفظ الصورة المنبثقة */
+  .save-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+  }
+  .save-dialog-card {
+    background: #ffffff;
+    width: 85%;
+    max-width: 320px;
+    border-radius: 24px;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+  }
+  body.dark-mode .save-dialog-card {
+    background: #0f1e33;
+    border: 1px solid #2a5298;
+  }
+  .save-dialog-header {
+    background: #1a3a6b;
+    padding: 16px;
+    text-align: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  body.dark-mode .save-dialog-header {
+    background: #0a1628;
+  }
+  .save-dialog-options {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .save-option-btn {
+    width: 100%;
+    padding: 12px;
+    background: #f8fafd;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.2s;
+    color: #1a3a6b;
+  }
+  .save-option-btn:active {
+    transform: scale(0.97);
+  }
+  body.dark-mode .save-option-btn {
+    background: #0d1a2e;
+    color: #a8c8f0;
+  }
+  .save-cancel-btn {
+    width: 100%;
+    padding: 12px;
+    background: none;
+    border: none;
+    border-top: 1px solid #c5cfe0;
+    color: #a8c0e8;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  /* Print View - مخفي */
+  #printView {
+    display: none;
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    width: 420px;
+    background: #fff;
+    padding: 24px 20px;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+  }
+  
+  /* نافذة الموقع */
   .location-popup-overlay {
     position: fixed;
     top: 0;
@@ -701,7 +792,6 @@
     color: #cde1ff;
   }
   
-  /* الإحداثيات عمودية */
   .coord-row {
     display: flex;
     flex-direction: column;
@@ -759,7 +849,6 @@
     transform: scale(0.98);
   }
   
-  /* الأزرار أفقية */
   .action-buttons {
     display: flex;
     flex-direction: row;
@@ -815,7 +904,7 @@
     animation: fadeOut 2s forwards;
   }
   
-  /* ========== نافذة منتقي التاريخ (Date Picker) ========== */
+  /* نافذة منتقي التاريخ */
   .datepicker-overlay {
     position: fixed;
     top: 0;
@@ -1082,23 +1171,60 @@
   </div>
 
   <div class="table-footer-container">
+    <!-- جدول المواقيت - يعرض جميع المدن -->
     <table class="prayer-table">
       <thead>
-        <tr><th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th></tr>
+        <tr>
+          <th>المواقيت</th>
+          <th>فجر</th>
+          <th>شروق</th>
+          <th>ظهر</th>
+          <th>عصر</th>
+          <th>مغرب</th>
+          <th>عشاء</th>
+        </tr>
       </thead>
       <tbody id="prayerBody"></tbody>
     </table>
     
-    <!-- ========== الطقس ========== -->
+    <!-- الطقس -->
     <div class="weather-box" id="weatherBox">
       <div class="weather-loading">☁️ جاري تحميل الطقس...</div>
     </div>
     
-    <!-- التذييل مع زر الموقع بجانب Mekkawy -->
+    <!-- التذييل مع أزرار الموقع والحفظ -->
     <div class="footer">
       <span onclick="location.reload();" style="cursor:pointer;">Mekkawy</span>
-      <button class="location-icon" id="locationFooterBtn" title="الموقع">📍</button>
+      <button class="icon-btn" id="saveImageBtn" title="حفظ كصورة">📸</button>
+      <button class="icon-btn" id="locationFooterBtn" title="الموقع">📍</button>
     </div>
+  </div>
+</div>
+
+<!-- Print View for Save as Image -->
+<div id="printView">
+  <div id="pv-dayAr" style="text-align:center;font-family:'Amiri',serif;font-size:64px;font-weight:700;color:#1a3a6b;"></div>
+  <div id="pv-dayEn" style="text-align:center;font-size:13px;font-weight:600;color:#1a3a6b;letter-spacing:3px;border:1.5px solid #1a3a6b;width:fit-content;padding:3px 20px;margin:5px auto 12px;"></div>
+  <div style="display:flex;border-top:2px solid #1a3a6b;border-bottom:2px solid #1a3a6b;">
+    <div style="flex:1;text-align:center;padding:8px;border-left:2px solid #1a3a6b;">
+      <span id="pv-gregDay" style="font-family:'Amiri',serif;font-size:100px;font-weight:700;color:#1a3a6b;"></span>
+      <span id="pv-gregMonth" style="font-family:'Amiri',serif;font-size:26px;font-weight:700;color:#1a3a6b;"></span>
+      <span id="pv-gregYear" style="font-size:22px;font-weight:700;color:#1a3a6b;"></span>
+    </div>
+    <div style="flex:1;text-align:center;padding:8px;">
+      <span id="pv-hijriDay" style="font-family:'Amiri',serif;font-size:100px;font-weight:700;color:#1a3a6b;"></span>
+      <span id="pv-hijriMonth" style="font-family:'Amiri',serif;font-size:26px;font-weight:700;color:#1a3a6b;"></span>
+      <span id="pv-hijriYear" style="font-size:22px;font-weight:700;color:#1a3a6b;"></span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
+    <span id="pv-coptic" style="font-size:11px;color:#1a3a6b;border:1px solid #1a3a6b;padding:4px 10px;border-radius:10px;"></span>
+    <span id="pv-greg" style="background:#1a3a6b;color:white;font-size:11px;padding:4px 10px;border-radius:10px;"></span>
+  </div>
+  <table id="pv-table" style="width:100%;border-collapse:collapse;font-size:11px;direction:rtl;"></table>
+  <div id="pv-zodiac" style="text-align:center;font-size:10px;color:#4a6a9b;margin-top:8px;padding:6px;background:#f4f7fc;border-radius:6px;display:none;"></div>
+  <div style="text-align:center;font-family:'Amiri',serif;font-size:18px;font-weight:700;color:#1a3a6b;margin-top:10px;padding-top:10px;border-top:1px solid #c5cfe0;">
+    <span>Mekkawy</span>
   </div>
 </div>
 
@@ -1477,27 +1603,26 @@ function updateHijriDisplay(hijri){
   } 
 }
 
-function updatePrayerTableDisplay(prayerTimes, cityName) {
-  const tbody = document.getElementById('prayerBody');
-  tbody.innerHTML = '';
-  const row = tbody.insertRow();
-  const cityCell = row.insertCell(0);
-  cityCell.innerText = cityName;
-  cityCell.style.cursor = 'pointer';
-  cityCell.title = 'اضغط لاختيار مدينة أخرى';
-  cityCell.onclick = () => showCitySelectionPopup();
-  if (prayerTimes) {
-    row.insertCell(1).innerHTML = `<span>${prayerTimes.fajr}</span>`;
-    row.insertCell(2).innerHTML = `<span>${prayerTimes.sunrise}</span>`;
-    row.insertCell(3).innerHTML = `<span>${prayerTimes.dhuhr}</span>`;
-    row.insertCell(4).innerHTML = `<span>${prayerTimes.asr}</span>`;
-    row.insertCell(5).innerHTML = `<span>${prayerTimes.maghrib}</span>`;
-    row.insertCell(6).innerHTML = `<span>${prayerTimes.isha}</span>`;
-  } else {
-    const cell = row.insertCell(1);
-    cell.colSpan = 6;
-    cell.innerText = 'خطأ في التحميل';
-  }
+function updatePrayerTableDisplay(allDisplayTimes){ 
+  const tbody = document.getElementById('prayerBody'); 
+  tbody.innerHTML = ''; 
+  for(let i=0;i<CITIES.length;i++){ 
+    const p=allDisplayTimes[i]; 
+    const row=tbody.insertRow(); 
+    row.insertCell(0).innerText=CITIES[i].name; 
+    if(p){ 
+      row.insertCell(1).innerHTML=`<span>${p.fajr}</span>`; 
+      row.insertCell(2).innerHTML=`<span>${p.sunrise}</span>`; 
+      row.insertCell(3).innerHTML=`<span>${p.dhuhr}</span>`; 
+      row.insertCell(4).innerHTML=`<span>${p.asr}</span>`; 
+      row.insertCell(5).innerHTML=`<span>${p.maghrib}</span>`; 
+      row.insertCell(6).innerHTML=`<span>${p.isha}</span>`; 
+    } else { 
+      const cell=row.insertCell(1); 
+      cell.colSpan=6; 
+      cell.innerText='خطأ'; 
+    } 
+  } 
 }
 
 async function refreshWidget(targetDate) {
@@ -1508,51 +1633,18 @@ async function refreshWidget(targetDate) {
   try {
     const hijri = await fetchHijriDate(date);
     if (hijri) updateHijriDisplay(hijri);
-    const city = CITIES[currentCity];
-    const rawData = await fetchPrayerTimesRaw(date, city);
-    if (rawData) prayerData = rawData;
-    const displayTimes = extractDisplayTimes(rawData);
-    updatePrayerTableDisplay(displayTimes, city.name);
+    const allRaw = await Promise.all(CITIES.map(c => fetchPrayerTimesRaw(date, c)));
+    if (allRaw[0]) prayerData = allRaw[0];
+    const allDisplay = allRaw.map(raw => extractDisplayTimes(raw));
+    updatePrayerTableDisplay(allDisplay);
     updateCountdown();
     await loadWeather();
   } catch(e) { console.error(e); }
   isLoading = false;
 }
 
-function showCitySelectionPopup() {
-  const existing = document.querySelector('.city-popup-overlay');
-  if (existing) existing.remove();
-  const overlay = document.createElement('div');
-  overlay.className = 'city-popup-overlay';
-  const card = document.createElement('div');
-  card.className = 'city-popup-card';
-  card.innerHTML = `<div class="city-popup-header">اختر مدينة</div><div class="city-list" id="cityList"></div><button class="city-close-btn" id="closeCityPopup">إغلاق</button>`;
-  const cityList = card.querySelector('#cityList');
-  CITIES.forEach((city, i) => {
-    const option = document.createElement('div');
-    option.className = 'city-option';
-    option.textContent = city.name;
-    option.onclick = async () => {
-      currentCity = i;
-      await refreshWidget(currentDisplayDate);
-      updateCityBarActive();
-      overlay.remove();
-    };
-    cityList.appendChild(option);
-  });
-  card.querySelector('#closeCityPopup').onclick = () => overlay.remove();
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-}
-
-function updateCityBarActive() {
-  const btns = document.querySelectorAll('.city-btn');
-  btns.forEach((btn, i) => { if (i === currentCity) btn.classList.add('active'); else btn.classList.remove('active'); });
-}
-
 // ======================== الطقس ========================
-const WEATHER_KEY = '819c643e98f045faadd50730260106';  // ضع مفتاحك هنا
+const WEATHER_KEY = '819c643e98f045faadd50730260106';
 
 function getWindDirectionShort(deg) {
   const directions = ['↑ ش', '↗ شش', '→ ش', '↘ جش', '↓ ج', '↙ جغ', '← غ', '↖ شغ'];
@@ -1565,7 +1657,6 @@ async function loadWeather() {
   
   weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
   
-  // المحاولة الأولى: WeatherAPI.com (باستخدام المفتاح)
   try {
     const url = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_KEY}&q=${city.lat},${city.lng}&lang=ar`;
     const response = await fetch(url);
@@ -1613,13 +1704,12 @@ async function loadWeather() {
           </div>
         </div>
       `;
-      return; // نجحت المحاولة الأولى، نخرج من الدالة
+      return;
     }
   } catch(e) {
     console.log('WeatherAPI.com failed, trying fallback...');
   }
   
-  // المحاولة الثانية: wttr.in (بدون مفتاح) - فقط إذا فشل الأول
   try {
     const fallbackUrl = `https://wttr.in/${city.lat},${city.lng}?format=j1&lang=ar`;
     const response = await fetch(fallbackUrl);
@@ -1639,7 +1729,7 @@ async function loadWeather() {
       weatherBox.innerHTML = `
         <div class="weather-city">
           ${city.name}
-          <span style="font-size:11px; opacity:0.7; margin-right:6px;" title="استخدام خدمة احتياطية (بدون مفتاح)">🔑</span>
+          <span style="font-size:11px; opacity:0.7; margin-right:6px;" title="استخدام خدمة احتياطية">🔑</span>
         </div>
         <div class="weather-main">
           <div class="weather-temp-section">
@@ -1680,7 +1770,161 @@ async function loadWeather() {
   }
 }
 
-// ======================== منتقي التاريخ (Date Picker) ========================
+// ======================== نافذة حفظ الصورة ========================
+function showSaveDialog() {
+  const existing = document.querySelector('.save-dialog-overlay');
+  if (existing) existing.remove();
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'save-dialog-overlay';
+  
+  const card = document.createElement('div');
+  card.className = 'save-dialog-card';
+  
+  card.innerHTML = `
+    <div class="save-dialog-header">📸 حفظ الصورة</div>
+    <div class="save-dialog-options">
+      <button class="save-option-btn" id="saveWithZodiac">✨ حفظ الصورة مع معلومات البرج</button>
+      <button class="save-option-btn" id="saveWithoutZodiac">📅 حفظ الصورة بدون معلومات البرج</button>
+    </div>
+    <button class="save-cancel-btn" id="closeSaveDialog">إلغاء</button>
+  `;
+  
+  card.querySelector('#saveWithZodiac').onclick = () => {
+    overlay.remove();
+    saveAsImage(true);
+  };
+  card.querySelector('#saveWithoutZodiac').onclick = () => {
+    overlay.remove();
+    saveAsImage(false);
+  };
+  card.querySelector('#closeSaveDialog').onclick = () => overlay.remove();
+  
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
+async function saveAsImage(withZodiac) {
+  const date = getViewDate();
+  const pv = document.getElementById('printView');
+  
+  // تعبئة بيانات التاريخ
+  document.getElementById('pv-dayAr').textContent = AR_DAYS[date.getDay()];
+  document.getElementById('pv-dayEn').textContent = EN_DAYS[date.getDay()];
+  document.getElementById('pv-gregDay').textContent = toAr(date.getDate());
+  document.getElementById('pv-gregMonth').textContent = AR_MONTHS_G[date.getMonth()];
+  document.getElementById('pv-gregYear').textContent = toAr(date.getFullYear());
+  document.getElementById('pv-greg').textContent = `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  const cop = toCoptic(date);
+  document.getElementById('pv-coptic').textContent = `${toAr(cop.day)} ${COPTIC_MONTHS[cop.month % 13]} ${toAr(cop.year)}`;
+  
+  // التاريخ الهجري
+  const hijri = await fetchHijriDate(date);
+  if (hijri) {
+    document.getElementById('pv-hijriDay').textContent = toAr(hijri.day);
+    document.getElementById('pv-hijriMonth').textContent = hijri.monthName;
+    document.getElementById('pv-hijriYear').textContent = toAr(hijri.year);
+  }
+  
+  // جدول المواقيت - جميع المدن
+  const tableHtml = `
+    <thead>
+      <tr>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">المواقيت</th>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">فجر</th>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">شروق</th>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">ظهر</th>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">عصر</th>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">مغرب</th>
+        <th style="background:#f0f4fa;padding:6px 4px;border:.5px solid #c5cfe0;color:#1a3a6b;font-weight:700;">عشاء</th>
+      </tr>
+    </thead>
+    <tbody id="pv-tbody"></tbody>
+  `;
+  document.getElementById('pv-table').innerHTML = tableHtml;
+  
+  const allRaw = await Promise.all(CITIES.map(c => fetchPrayerTimesRaw(date, c)));
+  const tbody = document.getElementById('pv-tbody');
+  tbody.innerHTML = '';
+  
+  for (let i = 0; i < CITIES.length; i++) {
+    const raw = allRaw[i];
+    const city = CITIES[i];
+    const row = tbody.insertRow();
+    row.insertCell(0).textContent = city.name;
+    if (raw && raw.timings) {
+      const t = raw.timings;
+      row.insertCell(1).textContent = convertTo12HourFormat(t.Fajr.slice(0,5));
+      row.insertCell(2).textContent = convertTo12HourFormat(t.Sunrise.slice(0,5));
+      row.insertCell(3).textContent = convertTo12HourFormat(t.Dhuhr.slice(0,5));
+      row.insertCell(4).textContent = convertTo12HourFormat(t.Asr.slice(0,5));
+      row.insertCell(5).textContent = convertTo12HourFormat(t.Maghrib.slice(0,5));
+      row.insertCell(6).textContent = convertTo12HourFormat(t.Isha.slice(0,5));
+    } else {
+      for (let j = 1; j <= 6; j++) row.insertCell(j).textContent = '--:--';
+    }
+    // تنسيق الخلايا
+    for (let j = 0; j <= 6; j++) {
+      row.cells[j].style.padding = '5px 3px';
+      row.cells[j].style.border = '0.5px solid #c5cfe0';
+      row.cells[j].style.color = '#1a3a6b';
+      row.cells[j].style.fontSize = '11px';
+    }
+  }
+  
+  // معلومات البرج
+  const zodiacDiv = document.getElementById('pv-zodiac');
+  if (withZodiac) {
+    // استخدام خدمة الأبراج البسيطة
+    const zodiac = getZodiacInfo(date);
+    zodiacDiv.innerHTML = `
+      ✨ مواليد هذا اليوم :<br>
+      <strong>${zodiac.name}</strong> | ${zodiac.element} | كوكب ${zodiac.planet}
+    `;
+    zodiacDiv.style.display = 'block';
+  } else {
+    zodiacDiv.style.display = 'none';
+  }
+  
+  pv.style.display = 'block';
+  await new Promise(r => setTimeout(r, 100));
+  
+  try {
+    const canvas = await html2canvas(pv, { scale: 3, backgroundColor: '#ffffff' });
+    const link = document.createElement('a');
+    const dateStr = `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`;
+    link.download = `مواقيت_${dateStr}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('تم حفظ الصورة ✅');
+  } catch(e) {
+    alert('تعذر حفظ الصورة: ' + e.message);
+  } finally {
+    pv.style.display = 'none';
+  }
+}
+
+// دالة بسيطة للأبراج (مؤقتة حتى ربط zodiac.js)
+function getZodiacInfo(date) {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return { name: 'الحمل', element: 'ناري', planet: 'المريخ' };
+  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return { name: 'الثور', element: 'ترابي', planet: 'الزهرة' };
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return { name: 'الجوزاء', element: 'هوائي', planet: 'عطارد' };
+  if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return { name: 'السرطان', element: 'مائي', planet: 'القمر' };
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return { name: 'الأسد', element: 'ناري', planet: 'الشمس' };
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return { name: 'العذراء', element: 'ترابي', planet: 'عطارد' };
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return { name: 'الميزان', element: 'هوائي', planet: 'الزهرة' };
+  if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return { name: 'العقرب', element: 'مائي', planet: 'المريخ' };
+  if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return { name: 'القوس', element: 'ناري', planet: 'المشتري' };
+  if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return { name: 'الجدي', element: 'ترابي', planet: 'زحل' };
+  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return { name: 'الدلو', element: 'هوائي', planet: 'أورانوس' };
+  return { name: 'الحوت', element: 'مائي', planet: 'نبتون' };
+}
+
+// ======================== منتقي التاريخ ========================
 function openDatePicker() { 
   activePickerDate = new Date(currentDisplayDate); 
   renderPicker(); 
@@ -1716,7 +1960,8 @@ function renderPicker() {
       <div class="picker-grid" id="pickerGrid"></div>
       <div class="picker-actions">
         <button id="todayBtn">📅 اليوم</button>
-        <button id="closeBtn" class="outline">إلغاء</button>
+        <button id="saveFromPickerBtn" class="outline">📸 حفظ كصورة</button>
+        <button id="closePickerBtn" class="outline">إلغاء</button>
       </div>
     </div>
   `; 
@@ -1788,7 +2033,11 @@ function renderPicker() {
     await refreshWidget(currentDisplayDate); 
     closePicker(); 
   }; 
-  document.getElementById('closeBtn').onclick = closePicker; 
+  document.getElementById('closePickerBtn').onclick = closePicker;
+  document.getElementById('saveFromPickerBtn').onclick = () => {
+    closePicker();
+    showSaveDialog();
+  };
   overlay.onclick = e => { 
     if (e.target === overlay) closePicker(); 
   }; 
@@ -1841,15 +2090,17 @@ function buildCityBar() {
   bar.innerHTML = '';
   CITIES.forEach((city, i) => {
     const btn = document.createElement('button');
-    btn.className = 'city-btn' + (i === currentCity ? ' active' : '');
+    btn.className = 'city-btn';
     btn.textContent = city.name;
     btn.onclick = async () => {
       currentCity = i;
-      updateCityBarActive();
+      document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       await refreshWidget(currentDisplayDate);
     };
     bar.appendChild(btn);
   });
+  document.querySelectorAll('.city-btn')[currentCity]?.classList.add('active');
 }
 
 function startCountdownTimer(){ 
@@ -1859,6 +2110,7 @@ function startCountdownTimer(){
 
 // ربط الأحداث
 document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
+document.getElementById('saveImageBtn').addEventListener('click', showSaveDialog);
 document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
 
 // التهيئة
@@ -1869,12 +2121,11 @@ refreshWidget(new Date());
 setInterval(checkAutoTheme,60000); 
 checkAutoTheme();
 
-// تحديث الطقس كل 10 دقائق
 setInterval(() => {
   loadWeather();
 }, 600000);
 
-// ======================== تهيئة PWA ========================
+// PWA
 document.addEventListener('DOMContentLoaded', function() {
     if (window.PWAInstall) {
         window.PWAInstall.init({
