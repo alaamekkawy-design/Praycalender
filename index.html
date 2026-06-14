@@ -25,7 +25,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
 <style>
-  /* ========== التنسيقات الأصلية لـ ICPWA (بدون تغيير) ========== */
+  /* ========== التنسيقات الأصلية لـ ICPWA ========== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; min-width: 0; height: 100%; overflow: hidden; position: relative; }
   body {
@@ -51,7 +51,7 @@
     position: relative;
   }
   
-  /* الأزرار العلوية - بنفس شكل ICPWA */
+  /* الأزرار العلوية */
   .top-buttons {
     position: absolute;
     top: 8px;
@@ -79,15 +79,15 @@
   .top-btn:active { transform: scale(0.92); opacity: 0.8; }
   body.dark-mode .top-btn { background: #2a5298; color: #e8f0ff; }
   
-  /* شريط المدن */
-  .location-bar {
+  /* شريط المدن - اختيار مدينة واحدة */
+  .city-bar {
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin-bottom: 10px;
+    margin: 40px 0 5px 0;
     flex-wrap: wrap;
   }
-  .loc-btn {
+  .city-btn {
     font-family: 'Cairo', sans-serif;
     font-size: 12px;
     padding: 4px 12px;
@@ -98,9 +98,9 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  .loc-btn.active { background: #1a3a6b; color: white; }
-  body.dark-mode .loc-btn { background: #0f1e33; color: #a8c8f0; border-color: #2a5298; }
-  body.dark-mode .loc-btn.active { background: #2a5298; color: white; }
+  .city-btn.active { background: #1a3a6b; color: white; }
+  body.dark-mode .city-btn { background: #0f1e33; color: #a8c8f0; border-color: #2a5298; }
+  body.dark-mode .city-btn.active { background: #2a5298; color: white; }
   
   /* زر الموقع في الأسفل */
   .location-footer {
@@ -224,77 +224,50 @@
     border-radius: 30px;
     white-space: nowrap;
   }
-  .table-footer-container {
-    margin-top: 2vw;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    gap: 1%;
-  }
-  .prayer-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: clamp(9px, 2vmin, 14px);
-    direction: rtl;
-    table-layout: fixed;
-    flex-shrink: 0;
-    background: transparent;
-  }
-  .prayer-table th, .prayer-table td {
-    padding: 2% 1%;
-    text-align: center;
-    border: 0.5px solid #c5cfe0;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-  .prayer-table th {
-    background: #eef2f9;
-    font-weight: 800;
-    font-size: clamp(9px, 3vmin, 13px);
-    color: #0a2a4a;
-    letter-spacing: 0.3px;
-  }
-  .prayer-table td:first-child {
-    font-weight: 800;
+  
+  /* جدول المواقيت - مدينة واحدة فقط */
+  .prayer-card {
     background: #f8fafd;
-    font-size: clamp(9px, 2.5vmin, 13px);
-    color: #0f3a6b;
-    border-left-width: 1px;
+    border-radius: 12px;
+    padding: 10px;
+    margin: 10px 0;
   }
-  .prayer-table td span {
+  .city-name-header {
+    text-align: center;
+    font-size: clamp(14px, 4vmin, 18px);
     font-weight: 800;
-    font-family: 'Cairo', 'Courier New', monospace;
-    font-size: clamp(9px, 3vmin, 13px);
-    letter-spacing: 0.5px;
-    background: transparent;
-    padding: 2px 4px;
-    border-radius: 8px;
-    display: inline-block;
+    color: #1a3a6b;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #1a3a6b;
+  }
+  .prayer-times-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    direction: rtl;
+  }
+  .prayer-item {
+    background: white;
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .prayer-name {
+    font-size: clamp(10px, 3vmin, 14px);
+    font-weight: 700;
     color: #1a3a6b;
   }
-  
-  body.dark-mode .prayer-table th {
-    background: #0a1628;
-    color: #e8f0ff;
-    border-color: #2a4c7a;
-  }
-  body.dark-mode .prayer-table td {
-    border-color: #1e3a5f;
-    background-color: #0f1e33;
-  }
-  body.dark-mode .prayer-table td:first-child {
-    background: #0d1a2e;
-    color: #d0e4ff;
-    border-left-color: #2a5298;
-  }
-  body.dark-mode .prayer-table td span {
-    color: #f0f4fc;
-    background: rgba(42, 82, 152, 0.25);
+  .prayer-time {
+    font-size: clamp(12px, 4vmin, 18px);
     font-weight: 800;
-    letter-spacing: 0.8px;
-    color: #ffecb3;
+    color: #0f766e;
+    font-family: monospace;
   }
+  body.dark-mode .prayer-card { background: #0d1a2e; }
+  body.dark-mode .prayer-item { background: #0f1e33; }
+  body.dark-mode .prayer-name { color: #a8c8f0; }
   
   .footer {
     text-align: center;
@@ -424,6 +397,8 @@
   }
   body.dark-mode .next-prayer-box { background: #0a1628; }
   body.dark-mode .weather-box { background: linear-gradient(135deg, #0a1628, #1a3a6b); }
+  body.dark-mode .prayer-card { background: #0d1a2e; }
+  body.dark-mode .prayer-item { background: #0f1e33; }
   
   /* زر التثبيت */
   #pwaInstallBtn {
@@ -442,36 +417,6 @@
     z-index: 1001;
     font-size: 12px;
   }
-  
-  /* نافذة الإعدادات */
-  .settings-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5); z-index: 200;
-    align-items: center; justify-content: center;
-  }
-  .settings-overlay.open { display: flex; }
-  .settings-panel {
-    background: #fff; width: 90%; max-width: 380px;
-    border-radius: 20px; padding: 20px;
-    max-height: 85vh; overflow-y: auto;
-    direction: rtl;
-  }
-  body.dark-mode .settings-panel { background: #0f1e33; }
-  .settings-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 15px; color: #1a3a6b; }
-  .settings-section { margin-bottom: 15px; }
-  .settings-label { font-size: 14px; font-weight: 700; display: block; margin-bottom: 8px; color: #1a3a6b; }
-  .madhab-row { display: flex; gap: 8px; }
-  .madhab-btn {
-    flex: 1; padding: 8px; border: 1px solid #1a3a6b;
-    border-radius: 30px; background: white; cursor: pointer;
-    font-size: 12px; font-weight: 600;
-  }
-  .madhab-btn.active { background: #1a3a6b; color: white; }
-  .save-btn {
-    width: 100%; padding: 10px; background: #1a3a6b;
-    color: white; border: none; border-radius: 30px;
-    font-weight: 700; cursor: pointer; margin-top: 10px;
-  }
 </style>
 </head>
 <body>
@@ -485,8 +430,8 @@
     <button id="darkToggle" class="top-btn" title="الوضع الليلي">🌙</button>
   </div>
 
-  <!-- شريط المدن -->
-  <div class="location-bar" id="locationBar"></div>
+  <!-- شريط المدن - اختيار مدينة واحدة -->
+  <div class="city-bar" id="cityBar"></div>
 
   <div class="day-name-ar clickable-date" id="dayAr">...</div>
   <div class="day-name-en clickable-date" id="dayEn">...</div>
@@ -509,55 +454,60 @@
     <span id="copticSpan" class="coptic">...</span>
   </div>
 
-  <!-- جدول المواقيت -->
-  <div class="table-footer-container">
-    <table class="prayer-table">
-      <thead><tr><th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th></tr></thead>
-      <tbody id="prayerBody"><tr><td colspan="7" style="text-align:center;">جاري التحميل...</td><tr</tbody>
-    </table>
-
-    <!-- التنقل بين الأيام -->
-    <div class="day-nav">
-      <button class="nav-btn" id="prevDayBtn">▶ اليوم السابق</button>
-      <button class="nav-btn today-indicator" id="todayBtn">اليوم</button>
-      <button class="nav-btn" id="nextDayBtn">اليوم التالي ◀</button>
+  <!-- جدول مواقيت المدينة المختارة (مدينة واحدة فقط) -->
+  <div class="prayer-card">
+    <div class="city-name-header" id="cityNameHeader">القاهرة</div>
+    <div class="prayer-times-grid" id="prayerTimesGrid">
+      <div class="prayer-item"><div class="prayer-name">الفجر</div><div class="prayer-time" id="fajrTime">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">الشروق</div><div class="prayer-time" id="sunriseTime">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">الظهر</div><div class="prayer-time" id="dhuhrTime">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">العصر</div><div class="prayer-time" id="asrTime">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">المغرب</div><div class="prayer-time" id="maghribTime">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">العشاء</div><div class="prayer-time" id="ishaTime">--:--</div></div>
     </div>
+  </div>
 
-    <!-- الصلاة القادمة والعداد -->
-    <div id="nextPrayerSection">
-      <div class="next-prayer-box">
-        <div>
-          <div class="next-prayer-label">الصلاة القادمة</div>
-          <div class="next-prayer-name" id="nextPrayerName">-</div>
-          <div class="next-prayer-time" id="nextPrayerTime">-</div>
-        </div>
-        <div class="countdown-box">
-          <div class="countdown-label">الوقت المتبقي</div>
-          <div class="countdown-timer" id="countdownTimer">--:--:--</div>
-          <button id="testAudioBtn" class="test-audio-btn">🔊 اختبار الأذان</button>
-        </div>
+  <!-- التنقل بين الأيام -->
+  <div class="day-nav">
+    <button class="nav-btn" id="prevDayBtn">▶ اليوم السابق</button>
+    <button class="nav-btn today-indicator" id="todayBtn">اليوم</button>
+    <button class="nav-btn" id="nextDayBtn">اليوم التالي ◀</button>
+  </div>
+
+  <!-- الصلاة القادمة والعداد -->
+  <div id="nextPrayerSection">
+    <div class="next-prayer-box">
+      <div>
+        <div class="next-prayer-label">الصلاة القادمة</div>
+        <div class="next-prayer-name" id="nextPrayerName">-</div>
+        <div class="next-prayer-time" id="nextPrayerTime">-</div>
+      </div>
+      <div class="countdown-box">
+        <div class="countdown-label">الوقت المتبقي</div>
+        <div class="countdown-timer" id="countdownTimer">--:--:--</div>
+        <button id="testAudioBtn" class="test-audio-btn">🔊 اختبار الأذان</button>
       </div>
     </div>
+  </div>
 
-    <!-- الطقس -->
-    <div class="weather-box" id="weatherBox">
-      <div style="text-align:center; padding:10px;">☁️ جاري تحميل الطقس...</div>
-    </div>
+  <!-- الطقس -->
+  <div class="weather-box" id="weatherBox">
+    <div style="text-align:center; padding:10px;">☁️ جاري تحميل الطقس...</div>
+  </div>
 
-    <!-- زر الموقع -->
-    <div class="location-footer">
-      <button id="locationFooterBtn" title="الموقع">📍</button>
-    </div>
+  <!-- زر الموقع -->
+  <div class="location-footer">
+    <button id="locationFooterBtn" title="الموقع">📍</button>
+  </div>
 
-    <div class="footer">
-      <span onclick="location.reload();" style="cursor:pointer;">Mekkawy | المذهب الشافعي</span>
-      <img id="logoFooter" src="data:image/png;base64,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" alt="logo">
-    </div>
+  <div class="footer">
+    <span onclick="location.reload();" style="cursor:pointer;">Mekkawy | المذهب الشافعي</span>
+    <img id="logoFooter" src="data:image/png;base64,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" alt="logo">
   </div>
 </div>
 
 <script>
-// ======================== بيانات التطبيق الأساسية (من ICPWA الأصلي) ========================
+// ======================== بيانات التطبيق ========================
 const CITIES = [
   { name: 'القاهرة', lat: 30.0444, lng: 31.2357 },
   { name: 'الإسكندرية', lat: 31.2001, lng: 29.9187 },
@@ -580,11 +530,11 @@ let darkModeManual = null;
 let alertedFor = null;
 let audioUnlocked = false;
 
-// إعدادات الصوت من ICPWA الأصلي
+// إعدادات الصوت
 const AZAN_URLS_LIST = ['azan.mp3', 'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3', 'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3'];
 let azanAudio = null;
 
-// دوال مساعدة (من ICPWA الأصلي)
+// دوال مساعدة
 function toAr(n) { return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
 function isToday() { const t = new Date(); const d = getViewDate(); return d.toDateString() === t.toDateString(); }
 function getViewDate() { const d = new Date(); d.setDate(d.getDate() + dayOffset); return d; }
@@ -593,7 +543,7 @@ function fmtTime(t24, offset) { const total=toMins(t24,offset); if(total===null)
 function convertTo12HourFormat(time24) { if(!time24||time24==='--:--') return '--:--'; const [hours,minutes]=time24.split(':'); const h=parseInt(hours,10); const h12=(h%12)||12; return `${minutes} ${h12}`; }
 function toCoptic(date) { let y=date.getFullYear()-283; let ny=new Date(date.getFullYear(),8,11); if(date<ny) { y--; ny=new Date(date.getFullYear()-1,8,11); } const diff=Math.floor((date-ny)/86400000); const month=Math.floor(diff/30); const day=diff%30+1; return { day, month, year:y }; }
 
-// دوال الصوت من ICPWA الأصلي
+// دوال الصوت
 function unlockAudio() { if(audioUnlocked) return; audioUnlocked=true; try { const ctx=new (AudioContext||webkitAudioContext)(); const buf=ctx.createBuffer(1,1,22050); const src=ctx.createBufferSource(); src.buffer=buf; src.connect(ctx.destination); src.start(0); ctx.resume(); } catch(e){} }
 document.addEventListener('click', unlockAudio, { once: true });
 document.addEventListener('touchstart', unlockAudio, { once: true });
@@ -610,35 +560,50 @@ function showAzanOverlay(prayerName) {
 
 async function playAlert(prayerName) { unlockAudio(); stopAzan(); showAzanOverlay(prayerName||'الصلاة'); for(const url of AZAN_URLS_LIST) { try { const audio=new Audio(); audio.volume=1.0; audio.src=url; azanAudio=audio; await audio.play(); audio.addEventListener('ended',()=>{ azanAudio=null; const ol=document.getElementById('azanOverlay'); if(ol) ol.remove(); }); return; } catch(e){} } try { const ctx=new (AudioContext||webkitAudioContext)(); await ctx.resume(); [880,660,770,880].forEach((freq,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=freq; const t0=ctx.currentTime+i*0.7; g.gain.setValueAtTime(0.4,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); o.start(t0); o.stop(t0+0.6); }); } catch(e){} }
 
-// دوال الصلاة والمواقيت
+// جلب البيانات
 async function fetchHijriDate(date) { const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); try { const resp=await fetch(`https://api.aladhan.com/v1/gToH/${d}-${m}-${y}`); const data=await resp.json(); if(data.code===200&&data.data){ const hij=data.data.hijri; return { day:parseInt(hij.day), monthName:hij.month.ar, year:parseInt(hij.year) }; } return null; } catch(e){ return null; } }
 
-async function fetchPrayerTimesRaw(date,city){ const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); const url=`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&timezonestring=Africa/Cairo`; try{ const resp=await fetch(url); const data=await resp.json(); if(data.code===200&&data.data) return data.data; return null; } catch(e){ return null; } }
+async function fetchPrayerTimes(date, city){ const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); const url=`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&timezonestring=Africa/Cairo`; try{ const resp=await fetch(url); const data=await resp.json(); if(data.code===200&&data.data) return data.data; return null; } catch(e){ return null; } }
 
-function extractDisplayTimes(rawData){ if(!rawData) return null; const t=rawData.timings; return { fajr:convertTo12HourFormat(t.Fajr.slice(0,5)), sunrise:convertTo12HourFormat(t.Sunrise.slice(0,5)), dhuhr:convertTo12HourFormat(t.Dhuhr.slice(0,5)), asr:convertTo12HourFormat(t.Asr.slice(0,5)), maghrib:convertTo12HourFormat(t.Maghrib.slice(0,5)), isha:convertTo12HourFormat(t.Isha.slice(0,5)) }; }
-
-function updateGregorianDisplay(date){ 
-  document.getElementById('dayAr').innerText=AR_DAYS[date.getDay()]; 
-  document.getElementById('dayEn').innerText=EN_DAYS[date.getDay()]; 
-  document.getElementById('gregDay').innerText=toAr(date.getDate()); 
-  document.getElementById('gregMonth').innerHTML=AR_MONTHS_G[date.getMonth()]+` <span class="date-month-syr">(${SYRIAC_MONTHS[date.getMonth()]})</span>`; 
-  document.getElementById('gregYear').innerText=toAr(date.getFullYear()); 
-  document.getElementById('gregLineFull').innerText=`${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()}`; 
-  const cop=toCoptic(date); 
-  document.getElementById('copticSpan').innerText=`${toAr(cop.day)} ${COPTIC_MONTHS[cop.month%13]} ${toAr(cop.year)}`; 
-}
-
-function updateHijriDisplay(hijri){ if(hijri){ document.getElementById('hijriDay').innerText=toAr(hijri.day); document.getElementById('hijriMonth').innerText=hijri.monthName; document.getElementById('hijriYear').innerText=toAr(hijri.year); } }
-
-function updatePrayerTableDisplay(allDisplayTimes){ 
-  const tbody=document.getElementById('prayerBody'); tbody.innerHTML=''; 
-  for(let i=0;i<CITIES.length;i++){ const p=allDisplayTimes[i]; const row=tbody.insertRow(); row.insertCell(0).innerText=CITIES[i].name; if(p){ row.insertCell(1).innerHTML=`<span>${p.fajr}</span>`; row.insertCell(2).innerHTML=`<span>${p.sunrise}</span>`; row.insertCell(3).innerHTML=`<span>${p.dhuhr}</span>`; row.insertCell(4).innerHTML=`<span>${p.asr}</span>`; row.insertCell(5).innerHTML=`<span>${p.maghrib}</span>`; row.insertCell(6).innerHTML=`<span>${p.isha}</span>`; } else { const cell=row.insertCell(1); cell.colSpan=6; cell.innerText='خطأ'; } } 
-}
-
-async function refreshWidget(){ 
-  const date=getViewDate();
-  updateGregorianDisplay(date); 
-  try{ const hijri=await fetchHijriDate(date); if(hijri) updateHijriDisplay(hijri); const allRaw=await Promise.all(CITIES.map(c=>fetchPrayerTimesRaw(date,c))); if(allRaw[0]) prayerData=allRaw[0]; const allDisplay=allRaw.map(raw=>extractDisplayTimes(raw)); updatePrayerTableDisplay(allDisplay); updateCountdown(); } catch(e){} 
+// عرض البيانات
+async function updateDisplay() {
+  const date = getViewDate();
+  const city = CITIES[currentCity];
+  
+  // تحديث اسم المدينة في header
+  document.getElementById('cityNameHeader').textContent = city.name;
+  
+  // تحديث التواريخ
+  document.getElementById('dayAr').innerText = AR_DAYS[date.getDay()];
+  document.getElementById('dayEn').innerText = EN_DAYS[date.getDay()];
+  document.getElementById('gregDay').innerText = toAr(date.getDate());
+  document.getElementById('gregMonth').innerHTML = AR_MONTHS_G[date.getMonth()] + ` <span class="date-month-syr">(${SYRIAC_MONTHS[date.getMonth()]})</span>`;
+  document.getElementById('gregYear').innerText = toAr(date.getFullYear());
+  document.getElementById('gregLineFull').innerText = `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  const cop = toCoptic(date);
+  document.getElementById('copticSpan').innerText = `${toAr(cop.day)} ${COPTIC_MONTHS[cop.month%13]} ${toAr(cop.year)}`;
+  
+  // جلب التاريخ الهجري
+  const hijri = await fetchHijriDate(date);
+  if (hijri) {
+    document.getElementById('hijriDay').innerText = toAr(hijri.day);
+    document.getElementById('hijriMonth').innerText = hijri.monthName;
+    document.getElementById('hijriYear').innerText = toAr(hijri.year);
+  }
+  
+  // جلب مواقيت الصلاة للمدينة المختارة
+  prayerData = await fetchPrayerTimes(date, city);
+  if (prayerData && prayerData.timings) {
+    const t = prayerData.timings;
+    document.getElementById('fajrTime').innerText = convertTo12HourFormat(t.Fajr.slice(0,5));
+    document.getElementById('sunriseTime').innerText = convertTo12HourFormat(t.Sunrise.slice(0,5));
+    document.getElementById('dhuhrTime').innerText = convertTo12HourFormat(t.Dhuhr.slice(0,5));
+    document.getElementById('asrTime').innerText = convertTo12HourFormat(t.Asr.slice(0,5));
+    document.getElementById('maghribTime').innerText = convertTo12HourFormat(t.Maghrib.slice(0,5));
+    document.getElementById('ishaTime').innerText = convertTo12HourFormat(t.Isha.slice(0,5));
+  }
+  
+  updateCountdown();
 }
 
 function updateCountdown() { 
@@ -661,31 +626,31 @@ function updateCountdown() {
 
 function startCountdownTimer(){ if(countdownInterval) clearInterval(countdownInterval); countdownInterval=setInterval(updateCountdown,1000); }
 
-// دوال الوضع الليلي من ICPWA الأصلي
+// الوضع الليلي
 function isDarkTime(){ if(!prayerData||!prayerData.timings){ const h=new Date().getHours(); return h>=19||h<6; } const now=new Date(); const cur=now.getHours()*60+now.getMinutes(); const maghrib=toMins(prayerData.timings.Maghrib,0); const fajr=toMins(prayerData.timings.Fajr,0); if(maghrib===null||fajr===null) return false; return cur>=maghrib||cur<fajr; }
 function applyDarkMode(dark){ document.body.classList.toggle('dark-mode', dark); document.getElementById('darkToggle').textContent=dark?'☀️':'🌙'; }
 function checkAutoTheme(){ if(darkModeManual!==null) return; applyDarkMode(isDarkTime()); }
 
 // شريط المدن
-function buildLocationBar() {
-  const bar = document.getElementById('locationBar');
+function buildCityBar() {
+  const bar = document.getElementById('cityBar');
   bar.innerHTML = '';
   CITIES.forEach((city, i) => {
     const btn = document.createElement('button');
-    btn.className = 'loc-btn' + (i === currentCity ? ' active' : '');
+    btn.className = 'city-btn' + (i === currentCity ? ' active' : '');
     btn.textContent = city.name;
     btn.onclick = async () => {
       currentCity = i;
-      document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      await refreshWidget();
+      await updateDisplay();
       loadWeather();
     };
     bar.appendChild(btn);
   });
 }
 
-// الطقس (باستخدام خدمة مجانية)
+// الطقس
 async function loadWeather() {
   const city = CITIES[currentCity];
   const box = document.getElementById('weatherBox');
@@ -713,10 +678,10 @@ async function loadWeather() {
 }
 
 // التنقل بين الأيام
-async function changeDay(delta) { dayOffset += delta; await refreshWidget(); loadWeather(); document.getElementById('todayBtn').textContent = dayOffset === 0 ? 'اليوم ✓' : `اليوم (${dayOffset > 0 ? '+' : ''}${dayOffset})`; document.getElementById('todayBtn').className = dayOffset === 0 ? 'nav-btn today-indicator' : 'nav-btn'; }
-async function goToday() { if (dayOffset === 0) return; dayOffset = 0; await refreshWidget(); loadWeather(); document.getElementById('todayBtn').textContent = 'اليوم ✓'; document.getElementById('todayBtn').className = 'nav-btn today-indicator'; }
+async function changeDay(delta) { dayOffset += delta; await updateDisplay(); loadWeather(); document.getElementById('todayBtn').textContent = dayOffset === 0 ? 'اليوم ✓' : `اليوم (${dayOffset > 0 ? '+' : ''}${dayOffset})`; document.getElementById('todayBtn').className = dayOffset === 0 ? 'nav-btn today-indicator' : 'nav-btn'; }
+async function goToday() { if (dayOffset === 0) return; dayOffset = 0; await updateDisplay(); loadWeather(); document.getElementById('todayBtn').textContent = 'اليوم ✓'; document.getElementById('todayBtn').className = 'nav-btn today-indicator'; }
 
-// الإعدادات
+// وظائف إضافية
 function openSettings() { alert('⚙️ نافذة الإعدادات - قيد التطوير'); }
 function showLocation() { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition((pos) => alert(`📍 موقعك:\n${pos.coords.latitude}, ${pos.coords.longitude}`), () => alert('تعذر تحديد الموقع')); } else { alert('المتصفح لا يدعم الموقع'); } }
 function showSaveDialog() { alert('📸 سيتم إضافة حفظ الصورة قريباً'); }
@@ -734,11 +699,11 @@ document.getElementById('testAudioBtn')?.addEventListener('click', () => playAle
 document.getElementById('darkToggle')?.addEventListener('click', () => { const isDark = document.body.classList.contains('dark-mode'); darkModeManual = !isDark; applyDarkMode(darkModeManual); setTimeout(() => { darkModeManual = null; checkAutoTheme(); }, 6 * 3600 * 1000); });
 
 // التهيئة
-buildLocationBar();
-refreshWidget();
+buildCityBar();
+updateDisplay();
 loadWeather();
 startCountdownTimer();
-setInterval(() => { refreshWidget(); }, 60000);
+setInterval(() => { updateDisplay(); }, 60000);
 checkAutoTheme();
 setInterval(checkAutoTheme, 60000);
 
