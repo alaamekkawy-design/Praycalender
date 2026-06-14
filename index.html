@@ -428,6 +428,16 @@
   .countdown-box     { text-align: center; }
   .countdown-label   { color: #a8c0e8; font-size: 2.5vw; }
   .countdown-timer   { color: #fff; font-size: 6vw; font-weight: 700; letter-spacing: 1px; margin-top: .5vw; }
+  .test-audio-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #f0c040;
+    font-size: clamp(8px, 2.2vmin, 11px);
+    padding: 2px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 5px;
+  }
 
   body.dark-mode { background: #0a0f1a; }
   body.dark-mode .widget {
@@ -864,7 +874,47 @@
     color: #a8c8f0;
   }
   
-  /* أنماط إضافية */
+  #azanOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    backdrop-filter: blur(5px);
+  }
+  
+  .azan-card {
+    background: linear-gradient(135deg, #1a3a6b 0%, #0f2a4a 100%);
+    border-radius: 32px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    max-width: 300px;
+    width: 85%;
+    border: 1px solid rgba(255,215,0,0.3);
+  }
+  
+  .azan-icon { font-size: 64px; margin-bottom: 15px; }
+  .azan-label { color: #f0c040; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .azan-name { color: #ffffff; font-size: 42px; font-weight: 800; margin-bottom: 30px; }
+  .azan-stop-btn {
+    background: #f0c040;
+    border: none;
+    color: #1a3a6b;
+    padding: 12px 35px;
+    border-radius: 60px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -928,7 +978,7 @@
       <div class="countdown-box">
         <div class="countdown-label">الوقت المتبقي</div>
         <div class="countdown-timer" id="countdownTimer">--:--:--</div>
-        <button id="testAudioBtn" class="test-audio-btn" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#f0c040;font-family:Cairo,sans-serif;font-size:clamp(8px,2.2vmin,12px);font-weight:700;padding:2px 10px;border-radius:20px;cursor:pointer;margin-top:5px;">🔊 اختبار الأذان</button>
+        <button id="testAudioBtn" class="test-audio-btn">🔊 اختبار الأذان</button>
       </div>
     </div>
   </div>
@@ -1144,43 +1194,167 @@ function fmtTime(t24, offset) { const total=toMins(t24,offset); if(total===null)
 function convertTo12HourFormat(time24) { if(!time24||time24==='--:--') return '--:--'; const [hours,minutes]=time24.split(':'); const h=parseInt(hours,10); const h12=(h%12)||12; return `${minutes} ${h12}`; }
 function toCoptic(date) { let y=date.getFullYear()-283; let ny=new Date(date.getFullYear(),8,11); if(date<ny) { y--; ny=new Date(date.getFullYear()-1,8,11); } const diff=Math.floor((date-ny)/86400000); const month=Math.floor(diff/30); const day=diff%30+1; return { day, month, year:y }; }
 
-// دوال الأذان
-const AZAN_URLS_LIST = [ 'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3' ];
+// ======================== دوال الأذان (الروابط الأصلية) ========================
+const AZAN_URLS_LIST = [
+  'azan.mp3',
+  'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
+  'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3'
+];
 let azanAudio = null, audioUnlocked = false;
-function unlockAudio() { if(audioUnlocked) return; audioUnlocked=true; try { const ctx=new (AudioContext||webkitAudioContext)(); const buf=ctx.createBuffer(1,1,22050); const src=ctx.createBufferSource(); src.buffer=buf; src.connect(ctx.destination); src.start(0); ctx.resume(); } catch(e){} }
+
+function unlockAudio() { 
+  if(audioUnlocked) return; 
+  audioUnlocked=true; 
+  try { 
+    const ctx=new (AudioContext||webkitAudioContext)(); 
+    const buf=ctx.createBuffer(1,1,22050); 
+    const src=ctx.createBufferSource(); 
+    src.buffer=buf; 
+    src.connect(ctx.destination); 
+    src.start(0); 
+    ctx.resume(); 
+  } catch(e){} 
+}
+
 document.addEventListener('click', unlockAudio, { once: true });
 document.addEventListener('touchstart', unlockAudio, { once: true });
-function stopAzan() { if(azanAudio) { azanAudio.pause(); azanAudio.currentTime=0; azanAudio=null; } const ov=document.getElementById('azanOverlay'); if(ov) ov.remove(); }
+
+function stopAzan() { 
+  if(azanAudio) { 
+    azanAudio.pause(); 
+    azanAudio.currentTime=0; 
+    azanAudio=null; 
+  } 
+  const ov=document.getElementById('azanOverlay'); 
+  if(ov) ov.remove(); 
+}
+
 function showAzanOverlay(prayerName) {
-  const existingOverlay=document.getElementById('azanOverlay'); if(existingOverlay) existingOverlay.remove();
-  const overlay=document.createElement('div'); overlay.id='azanOverlay'; overlay.innerHTML=`<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:2000;"><div style="background:linear-gradient(135deg,#1a3a6b,#0f2a4a);border-radius:32px;padding:40px 30px;text-align:center;max-width:300px;width:85%;"><div style="font-size:64px;">🕌</div><div style="color:#f0c040;font-size:20px;margin-bottom:8px;">حان وقت صلاة</div><div style="color:white;font-size:42px;font-weight:800;margin-bottom:30px;">${prayerName}</div><button id="stopAzanBtn" style="background:#f0c040;border:none;color:#1a3a6b;padding:12px 35px;border-radius:60px;font-size:18px;font-weight:800;cursor:pointer;">⏹ إيقاف الأذان</button></div></div>`;
+  const existingOverlay=document.getElementById('azanOverlay'); 
+  if(existingOverlay) existingOverlay.remove();
+  const overlay=document.createElement('div'); 
+  overlay.id='azanOverlay'; 
+  overlay.innerHTML=`<div class="azan-card"><div class="azan-icon">🕌</div><div class="azan-label">حان وقت صلاة</div><div class="azan-name">${prayerName}</div><button id="stopAzanBtn" class="azan-stop-btn">⏹ إيقاف الأذان</button></div>`;
   document.body.appendChild(overlay);
-  const stopBtn=document.getElementById('stopAzanBtn'); if(stopBtn) { stopBtn.addEventListener('click', stopAzan); stopBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); stopAzan(); }); }
+  const stopBtn=document.getElementById('stopAzanBtn'); 
+  if(stopBtn) { 
+    stopBtn.addEventListener('click', stopAzan); 
+    stopBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); stopAzan(); }); 
+  }
   overlay.addEventListener('click', (e)=>{ if(e.target===overlay) stopAzan(); });
 }
-async function playAlert(prayerName) { unlockAudio(); stopAzan(); showAzanOverlay(prayerName||'الصلاة'); for(const url of AZAN_URLS_LIST) { try { const audio=new Audio(); audio.volume=1.0; audio.src=url; azanAudio=audio; await audio.play(); audio.addEventListener('ended',()=>{ azanAudio=null; const ol=document.getElementById('azanOverlay'); if(ol) ol.remove(); }); return; } catch(e){} } try { const ctx=new (AudioContext||webkitAudioContext)(); await ctx.resume(); [880,660,770,880].forEach((freq,i)=>{ const o=ctx.createOscillator(); const g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=freq; const t0=ctx.currentTime+i*0.7; g.gain.setValueAtTime(0.4,t0); g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); o.start(t0); o.stop(t0+0.6); }); } catch(e){} }
+
+async function playAlert(prayerName) { 
+  unlockAudio(); 
+  stopAzan(); 
+  showAzanOverlay(prayerName||'الصلاة'); 
+  for(const url of AZAN_URLS_LIST) { 
+    try { 
+      const audio=new Audio(); 
+      audio.volume=1.0; 
+      audio.src=url; 
+      azanAudio=audio; 
+      await audio.play(); 
+      audio.addEventListener('ended',()=>{ 
+        azanAudio=null; 
+        const ol=document.getElementById('azanOverlay'); 
+        if(ol) ol.remove(); 
+      }); 
+      return; 
+    } catch(e){} 
+  } 
+  // إذا فشلت جميع المحاولات، استخدم نغمات بسيطة
+  try { 
+    const ctx=new (AudioContext||webkitAudioContext)(); 
+    await ctx.resume(); 
+    [880,660,770,880].forEach((freq,i)=>{ 
+      const o=ctx.createOscillator(); 
+      const g=ctx.createGain(); 
+      o.connect(g); 
+      g.connect(ctx.destination); 
+      o.frequency.value=freq; 
+      const t0=ctx.currentTime+i*0.7; 
+      g.gain.setValueAtTime(0.4,t0); 
+      g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); 
+      o.start(t0); 
+      o.stop(t0+0.6); 
+    }); 
+  } catch(e){} 
+}
 
 function updateCountdown() { 
-  if(!isToday()){ const s=document.getElementById('nextPrayerSection'); if(s) s.style.display='none'; return; } 
-  const s2=document.getElementById('nextPrayerSection'); if(s2) s2.style.display=''; 
+  if(!isToday()){ 
+    const s=document.getElementById('nextPrayerSection'); 
+    if(s) s.style.display='none'; 
+    return; 
+  } 
+  const s2=document.getElementById('nextPrayerSection'); 
+  if(s2) s2.style.display=''; 
   if(!prayerData||!prayerData.timings) return; 
-  const now=new Date(); const curMin=now.getHours()*60+now.getMinutes(); const curSec=now.getSeconds(); 
+  const now=new Date(); 
+  const curMin=now.getHours()*60+now.getMinutes(); 
+  const curSec=now.getSeconds(); 
   const t=prayerData.timings; 
-  const list=[{key:'fajr',name:'الفجر',mins:toMins(t.Fajr,0),disp:fmtTime(t.Fajr,0)},{key:'sunrise',name:'الشروق',mins:toMins(t.Sunrise,0),disp:fmtTime(t.Sunrise,0)},{key:'dhuhr',name:'الظهر',mins:toMins(t.Dhuhr,0),disp:fmtTime(t.Dhuhr,0)},{key:'asr',name:'العصر',mins:toMins(t.Asr,0),disp:fmtTime(t.Asr,0)},{key:'maghrib',name:'المغرب',mins:toMins(t.Maghrib,0),disp:fmtTime(t.Maghrib,0)},{key:'isha',name:'العشاء',mins:toMins(t.Isha,0),disp:fmtTime(t.Isha,0)}].filter(p=>p.mins!==null); 
+  const list=[
+    {key:'fajr',name:'الفجر',mins:toMins(t.Fajr,0),disp:fmtTime(t.Fajr,0)},
+    {key:'sunrise',name:'الشروق',mins:toMins(t.Sunrise,0),disp:fmtTime(t.Sunrise,0)},
+    {key:'dhuhr',name:'الظهر',mins:toMins(t.Dhuhr,0),disp:fmtTime(t.Dhuhr,0)},
+    {key:'asr',name:'العصر',mins:toMins(t.Asr,0),disp:fmtTime(t.Asr,0)},
+    {key:'maghrib',name:'المغرب',mins:toMins(t.Maghrib,0),disp:fmtTime(t.Maghrib,0)},
+    {key:'isha',name:'العشاء',mins:toMins(t.Isha,0),disp:fmtTime(t.Isha,0)}
+  ].filter(p=>p.mins!==null); 
   if(list.length===0) return; 
-  const curTotalSec=curMin*60+curSec; let next=list.find(p=>p.mins*60>curTotalSec)||list[0]; 
-  let diffSec=next.mins*60-curTotalSec; if(diffSec<=0) diffSec+=24*3600; 
+  const curTotalSec=curMin*60+curSec; 
+  let next=list.find(p=>p.mins*60>curTotalSec)||list[0]; 
+  let diffSec=next.mins*60-curTotalSec; 
+  if(diffSec<=0) diffSec+=24*3600; 
   const hrs=Math.floor(diffSec/3600), mins=Math.floor((diffSec%3600)/60), secs=diffSec%60; 
   document.getElementById('nextPrayerName').textContent=next.name; 
   document.getElementById('nextPrayerTime').textContent=next.disp; 
   document.getElementById('countdownTimer').textContent=`${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; 
-  if(hrs===0&&mins===0&&secs<=4&&alertedFor!==next.key){ alertedFor=next.key; playAlert(next.name); } 
+  if(hrs===0&&mins===0&&secs<=4&&alertedFor!==next.key){ 
+    alertedFor=next.key; 
+    playAlert(next.name); 
+  } 
   if(diffSec>60&&alertedFor===next.key) alertedFor=null; 
 }
 
-async function fetchHijriDate(date) { const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); try { const resp=await fetch(`https://api.aladhan.com/v1/gToH/${d}-${m}-${y}`); const data=await resp.json(); if(data.code===200&&data.data){ const hij=data.data.hijri; return { day:parseInt(hij.day), monthName:hij.month.ar, year:parseInt(hij.year) }; } return null; } catch(e){ return null; } }
-async function fetchPrayerTimesRaw(date,city){ const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); const url=`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&midnightMode=1&timezonestring=Africa/Cairo`; try{ const resp=await fetch(url); const data=await resp.json(); if(data.code===200&&data.data) return data.data; return null; } catch(e){ return null; } }
-function extractDisplayTimes(rawData){ if(!rawData) return null; const t=rawData.timings; return { fajr:convertTo12HourFormat(t.Fajr.slice(0,5)), sunrise:convertTo12HourFormat(t.Sunrise.slice(0,5)), dhuhr:convertTo12HourFormat(t.Dhuhr.slice(0,5)), asr:convertTo12HourFormat(t.Asr.slice(0,5)), maghrib:convertTo12HourFormat(t.Maghrib.slice(0,5)), isha:convertTo12HourFormat(t.Isha.slice(0,5)) }; }
+async function fetchHijriDate(date) { 
+  const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
+  try { 
+    const resp=await fetch(`https://api.aladhan.com/v1/gToH/${d}-${m}-${y}`); 
+    const data=await resp.json(); 
+    if(data.code===200&&data.data){ 
+      const hij=data.data.hijri; 
+      return { day:parseInt(hij.day), monthName:hij.month.ar, year:parseInt(hij.year) }; 
+    } 
+    return null; 
+  } catch(e){ return null; } 
+}
+
+async function fetchPrayerTimesRaw(date,city){ 
+  const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
+  const url=`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&midnightMode=1&timezonestring=Africa/Cairo`; 
+  try{ 
+    const resp=await fetch(url); 
+    const data=await resp.json(); 
+    if(data.code===200&&data.data) return data.data; 
+    return null; 
+  } catch(e){ return null; } 
+}
+
+function extractDisplayTimes(rawData){ 
+  if(!rawData) return null; 
+  const t=rawData.timings; 
+  return { 
+    fajr:convertTo12HourFormat(t.Fajr.slice(0,5)), 
+    sunrise:convertTo12HourFormat(t.Sunrise.slice(0,5)), 
+    dhuhr:convertTo12HourFormat(t.Dhuhr.slice(0,5)), 
+    asr:convertTo12HourFormat(t.Asr.slice(0,5)), 
+    maghrib:convertTo12HourFormat(t.Maghrib.slice(0,5)), 
+    isha:convertTo12HourFormat(t.Isha.slice(0,5))
+  }; 
+}
 
 function updateGregorianDisplay(date){ 
   document.getElementById('dayAr').innerText=AR_DAYS[date.getDay()]; 
@@ -1193,7 +1367,13 @@ function updateGregorianDisplay(date){
   document.getElementById('copticSpan').innerText=`${toAr(cop.day)} ${COPTIC_MONTHS[cop.month%13]} ${toAr(cop.year)}`; 
 }
 
-function updateHijriDisplay(hijri){ if(hijri){ document.getElementById('hijriDay').innerText=toAr(hijri.day); document.getElementById('hijriMonth').innerText=hijri.monthName; document.getElementById('hijriYear').innerText=toAr(hijri.year); } }
+function updateHijriDisplay(hijri){ 
+  if(hijri){ 
+    document.getElementById('hijriDay').innerText=toAr(hijri.day); 
+    document.getElementById('hijriMonth').innerText=hijri.monthName; 
+    document.getElementById('hijriYear').innerText=toAr(hijri.year); 
+  } 
+}
 
 function updatePrayerTableDisplay(prayerTimes, cityName) {
   const tbody = document.getElementById('prayerBody');
@@ -1391,10 +1571,38 @@ function attachEvents(){
 }
 
 // ======================== الوضع الليلي ========================
-function isDarkTime(){ if(!prayerData||!prayerData.timings){ const h=new Date().getHours(); return h>=19||h<6; } const now=new Date(); const cur=now.getHours()*60+now.getMinutes(); const maghrib=toMins(prayerData.timings.Maghrib,0); const fajr=toMins(prayerData.timings.Fajr,0); if(maghrib===null||fajr===null) return false; return cur>=maghrib||cur<fajr; }
-function applyDarkMode(dark){ document.body.classList.toggle('dark-mode', dark); document.getElementById('darkToggle').textContent=dark?'☀️':'🌙'; }
-function checkAutoTheme(){ if(darkModeManual!==null) return; applyDarkMode(isDarkTime()); }
-document.getElementById('darkToggle').addEventListener('click',()=>{ const isDark=document.body.classList.contains('dark-mode'); darkModeManual=!isDark; applyDarkMode(darkModeManual); setTimeout(()=>{ darkModeManual=null; checkAutoTheme(); },6*3600*1000); });
+function isDarkTime(){ 
+  if(!prayerData||!prayerData.timings){ 
+    const h=new Date().getHours(); 
+    return h>=19||h<6; 
+  } 
+  const now=new Date(); 
+  const cur=now.getHours()*60+now.getMinutes(); 
+  const maghrib=toMins(prayerData.timings.Maghrib,0); 
+  const fajr=toMins(prayerData.timings.Fajr,0); 
+  if(maghrib===null||fajr===null) return false; 
+  return cur>=maghrib||cur<fajr; 
+}
+
+function applyDarkMode(dark){ 
+  document.body.classList.toggle('dark-mode', dark); 
+  document.getElementById('darkToggle').textContent=dark?'☀️':'🌙'; 
+}
+
+function checkAutoTheme(){ 
+  if(darkModeManual!==null) return; 
+  applyDarkMode(isDarkTime()); 
+}
+
+document.getElementById('darkToggle').addEventListener('click',()=>{ 
+  const isDark=document.body.classList.contains('dark-mode'); 
+  darkModeManual=!isDark; 
+  applyDarkMode(darkModeManual); 
+  setTimeout(()=>{ 
+    darkModeManual=null; 
+    checkAutoTheme(); 
+  },6*3600*1000); 
+});
 
 function buildCityBar() {
   const bar = document.getElementById('cityBar');
@@ -1412,7 +1620,10 @@ function buildCityBar() {
   });
 }
 
-function startCountdownTimer(){ if(countdownInterval) clearInterval(countdownInterval); countdownInterval=setInterval(updateCountdown,1000); }
+function startCountdownTimer(){ 
+  if(countdownInterval) clearInterval(countdownInterval); 
+  countdownInterval=setInterval(updateCountdown,1000); 
+}
 
 // ربط الأحداث
 document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
