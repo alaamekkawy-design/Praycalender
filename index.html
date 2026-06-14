@@ -3,316 +3,1064 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"> 
-<title>التقويم الإسلامي - مواقيت الصلاة</title>
+<title>التقويم الإسلامي</title> 
+<link rel="icon" type="image/png" href="./icons/icon-48x48.png"> 
+<link rel="manifest" href="./manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#0f766e"> 
+
+<!-- ربط ملفات المساعدة -->
+<script src="install.js" defer></script>
+<script src="location.js" defer></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;900&display=swap');
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
-
-body { background: #1a2a3a; display: flex; justify-content: center; align-items: center; font-family: 'Cairo', sans-serif; }
-
-.widget { background: #ffffff; width: 100%; height: 100%; border-radius: 12px; overflow-y: auto; overflow-x: hidden; border: 1px solid #b0bfcf; padding: 12px; display: flex; flex-direction: column; position: relative; }
-
-.top-buttons { position: absolute; top: 8px; right: 8px; left: 8px; display: flex; justify-content: flex-end; z-index: 10; }
-
-#darkToggle { background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; padding: 4px 8px; }
-
-#darkToggle:hover { opacity: 1; }
-
-/* ========== نافذة اختيار المدن ========== */
-.city-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 2000; font-family: 'Cairo', sans-serif; direction: rtl; animation: fadeIn 0.2s ease; }
-
-.city-popup-card { background: #ffffff; width: 80%; max-width: 300px; border-radius: 24px; overflow: hidden; animation: slideUp 0.3s ease; }
-
-.city-popup-header { background: #1a3a6b; padding: 15px; text-align: center; color: white; font-weight: 700; font-size: 16px; }
-
-.city-list { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-
-.city-option { padding: 12px; text-align: center; background: #f8fafd; border-radius: 40px; cursor: pointer; font-weight: 600; color: #1a3a6b; transition: all 0.2s; }
-
-.city-option:active { transform: scale(0.97); background: #eef2f9; }
-
-.city-close-btn { width: 100%; padding: 12px; background: none; border: none; border-top: 1px solid #c5cfe0; color: #a8c0e8; font-weight: 600; cursor: pointer; }
-
-/* ========== التواريخ ========== */
-.clickable-date { cursor: pointer; transition: opacity 0.1s; }
-
-.clickable-date:active { opacity: 0.65; }
-
-.day-name-ar { text-align: center; font-family: 'Amiri', serif; font-size: clamp(16px, 7vmin, 42px); font-weight: 800; color: #1a3a6b; line-height: 1.1; margin: 0 0 1% 0; }
-
-.day-name-en { text-align: center; font-size: clamp(9px, 3.2vmin, 16px); font-weight: 700; color: #1a3a6b; border-radius: 30px; border: 1.5px solid #1a3a6b; display: inline-block; padding: 0.3% 3%; margin: 0 auto 1%; width: fit-content; letter-spacing: 0.5px; background: white; }
-
-.dates-row { display: flex; border-top: 1.5px solid #1a3a6b; border-bottom: 1.5px solid #1a3a6b; margin: 1% 0 1.5%; flex: 0 0 auto; cursor: pointer; }
-
-.date-block { flex: 1; text-align: center; padding: 1% 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5%; }
-
-.date-block:first-child { border-left: 1.5px solid #1a3a6b; }
-
-.date-num { font-family: 'Amiri', serif; font-size: clamp(24px, 15vmin, 60px); font-weight: 800; color: #1a3a6b; line-height: 1; }
-
-.date-month-ar { font-family: 'Amiri', serif; font-size: clamp(14px, 5vmin, 18px); font-weight: 700; color: #1a3a6b; padding: 0.3% 1%; border-radius: 30px; white-space: nowrap; }
-
-.date-month-syr { font-family: 'Amiri', serif; font-size: clamp(0.7em, 2.5vmin, 1.5em); font-weight: 600; color: #1a3a6b; background: transparent; opacity: 0.75; white-space: nowrap; }
-
-.date-year { font-family: 'Cairo', sans-serif; font-size: clamp(12px, 4vmin, 18px); font-weight: 800; color: #1a3a6b; }
-
-.gregorian-line { display: flex; align-items: center; justify-content: center; gap: 15%; margin: 0.5% 0 1%; font-size: clamp(9px, 5vmin, 14px); color: #1a3a6b; font-weight: 700; cursor: pointer; }
-
-.gregorian-line .badge { background: #1a3a6b; color: white; border: 1px solid #1a3a6b; padding: 0.3% 5%; border-radius: 30px; white-space: nowrap; }
-
-.gregorian-line .coptic { border: 1px solid #1a3a6b; padding: 0.3% 5%; border-radius: 30px; white-space: nowrap; }
-
-.table-footer-container { margin-top: 2vw; flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 1%; }
-
-/* ========== جدول المواقيت ========== */
-.prayer-table { width: 100%; border-collapse: collapse; font-size: clamp(9px, 2vmin, 14px); direction: rtl; table-layout: fixed; flex-shrink: 0; background: transparent; }
-
-.prayer-table th, .prayer-table td { padding: 2% 1%; text-align: center; border: 0.5px solid #c5cfe0; font-weight: 600; transition: all 0.2s ease; }
-
-.prayer-table th { background: #eef2f9; font-weight: 800; font-size: clamp(9px, 3vmin, 13px); color: #0a2a4a; letter-spacing: 0.3px; }
-
-.prayer-table td:first-child { font-weight: 800; background: #eef2f9; font-size: clamp(9px, 2.5vmin, 13px); color: #0f3a6b; border-left-width: 1px; cursor: pointer; transition: background 0.2s ease; }
-
-.prayer-table td:first-child:active { opacity: 0.7; }
-
-.prayer-table td span { font-weight: 800; font-family: 'Cairo', 'Courier New', monospace; font-size: clamp(9px, 3vmin, 13px); letter-spacing: 0.5px; background: transparent; padding: 2px 4px; border-radius: 8px; display: inline-block; color: #1a3a6b; }
-
-.prayer-table td:hover { background-color: rgba(26, 58, 107, 0.08); }
-
-/* ========== الطقس ========== */
-.weather-box { background: linear-gradient(135deg, #1a3a6b 0%, #2a5298 100%); border-radius: 12px; padding: 8px 12px; margin: 8px 0; color: white; direction: rtl; }
-
-.weather-loading { text-align: center; padding: 10px; font-size: 12px; opacity: 0.8; }
-
-.weather-city { font-size: 13px; font-weight: 800; margin-bottom: 4px; text-align: center; }
-
-.weather-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-
-.weather-temp-section { text-align: center; }
-
-.weather-temp { font-size: 28px; font-weight: 900; line-height: 1; }
-
-.weather-unit { font-size: 14px; font-weight: 400; vertical-align: super; }
-
-.weather-condition { font-size: 11px; opacity: 0.9; margin-top: 2px; }
-
-.weather-icon { width: 40px; height: 40px; }
-
-.weather-details { display: flex; justify-content: space-around; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
-
-.weather-detail { text-align: center; flex: 1; }
-
-.weather-detail-val { font-size: 12px; font-weight: 700; }
-
-.weather-wind { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 700; }
-
-.weather-wind-speed, .weather-wind-dir { font-weight: 700; }
-
-.weather-detail-lbl { font-size: 9px; opacity: 0.7; margin-top: 2px; }
-
-/* ========== التذييل ========== */
-.footer { text-align: center; font-family: 'Amiri', serif; font-size: clamp(8px, 3vmin, 11px); font-weight: 600; color: #1a3a6b; padding: 8px 0; border-top: 1px solid #c5cfe0; background: white; flex-shrink: 0; }
-
-/* ========== الصلاة القادمة ========== */
-.next-prayer-box { background: #1a3a6b; border-radius: 8px; margin-top: 2vw; padding: 2vw 3vw; display: flex; align-items: center; justify-content: space-between; direction: rtl; }
-
-.next-prayer-label { color: #a8c0e8; font-size: 2.5vw; font-weight: 600; }
-
-.next-prayer-name { color: #fff; font-family: 'Amiri', serif; font-size: 5vw; font-weight: 700; margin-top: 0.5vw; }
-
-.next-prayer-time { color: #f0c040; font-size: 3vw; font-weight: 600; margin-top: 0.3vw; }
-
-.countdown-box { text-align: center; }
-
-.countdown-label { color: #a8c0e8; font-size: 2.5vw; }
-
-.countdown-timer { color: #fff; font-size: 6vw; font-weight: 700; letter-spacing: 1px; margin-top: 0.5vw; }
-
-.test-audio-btn { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); color: #f0c040; font-size: clamp(8px, 2.2vmin, 11px); padding: 2px 8px; border-radius: 20px; cursor: pointer; margin-top: 5px; }
-
-/* ========== الأذان ========== */
-#azanOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 2000; font-family: 'Cairo', sans-serif; direction: rtl; backdrop-filter: blur(5px); }
-
-.azan-card { background: linear-gradient(135deg, #1a3a6b 0%, #0f2a4a 100%); border-radius: 32px; padding: 40px 30px; text-align: center; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); max-width: 300px; width: 85%; border: 1px solid rgba(255, 215, 0, 0.3); }
-
-.azan-icon { font-size: 64px; margin-bottom: 15px; }
-
-.azan-label { color: #f0c040; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-
-.azan-name { color: #ffffff; font-size: 42px; font-weight: 800; margin-bottom: 30px; }
-
-.azan-stop-btn { background: #f0c040; border: none; color: #1a3a6b; padding: 12px 35px; border-radius: 60px; font-size: 18px; font-weight: 800; cursor: pointer; }
-
-/* ========== رسالة النسخ ========== */
-.copy-success { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a3a6b; color: white; padding: 8px 20px; border-radius: 50px; font-size: 13px; z-index: 2100; animation: fadeOut 2s forwards; }
-
-/* ========== زر PWA ========== */
-#pwaInstallBtn { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #0f766e; color: white; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; z-index: 1001; font-size: 12px; }
-
-/* ========== نافذة الموقع ========== */
-.location-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 2000; font-family: 'Cairo', sans-serif; direction: rtl; animation: fadeIn 0.2s ease; }
-
-.location-popup-card { background: #ffffff; width: 90%; max-width: 380px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); overflow: hidden; animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
-
-.popup-header { background: #1a3a6b; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; color: white; }
-
-.popup-header h3 { font-size: 1.2rem; font-weight: 800; margin: 0; }
-
-.close-popup { background: rgba(255, 255, 255, 0.2); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 18px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
-
-.close-popup:hover { background: rgba(255, 255, 255, 0.4); }
-
-.popup-content { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-
-.info-row { display: flex; flex-direction: column; gap: 6px; background: #f8fafd; padding: 12px 14px; border-radius: 16px; }
-
-.info-label { font-size: 12px; font-weight: 700; color: #6c86a3; letter-spacing: 0.5px; }
-
-.info-value { font-size: 14px; font-weight: 600; color: #1a2c44; word-break: break-word; line-height: 1.4; }
-
-.coord-row { display: flex; flex-direction: column; gap: 12px; }
-
-.coord-box { background: #eef2f9; border-radius: 16px; padding: 12px; text-align: center; }
-
-.coord-label { font-size: 11px; font-weight: 600; color: #4a627a; margin-bottom: 4px; }
-
-.coord-value { font-size: 14px; font-weight: 800; font-family: monospace; margin-top: 4px; color: #1a3a6b; }
-
-.google-link { background: #1a73e8; color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 40px; font-weight: 700; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-.google-link:hover { background: #0d62cc; transform: scale(0.98); }
-
-.action-buttons { display: flex; flex-direction: row; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
-
-.action-btn { flex: 1; min-width: 100px; background: #eef2f9; border: none; padding: 10px 8px; border-radius: 40px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; color: #1a3a6b; white-space: nowrap; }
-
-.action-btn:active { transform: scale(0.96); }
-
-.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ========== منتقي التاريخ ========== */
-.datepicker-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 2000; font-family: 'Cairo', sans-serif; direction: rtl; }
-
-.datepicker-overlay.open { display: flex; }
-
-.datepicker-modal { background: white; width: 330px; max-width: 90%; border-radius: 24px; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3); padding: 16px; text-align: center; }
-
-.year-month-control { display: flex; gap: 10px; align-items: center; justify-content: center; background: #eef2f7; padding: 8px 12px; border-radius: 50px; margin: 0 auto 15px; width: fit-content; }
-
-.year-month-control button { background: none; border: none; font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 10px; color: #1a3a6b; }
-
-.year-month-control span { font-size: 16px; font-weight: 800; min-width: 110px; }
-
-.picker-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 15px 0; }
-
-.picker-weekday { font-size: 12px; font-weight: bold; color: #1a3a6b; background: #eef2f7; padding: 8px 0; border-radius: 30px; text-align: center; }
-
-.picker-day { background: #f9f9fc; padding: 10px 0; border-radius: 50%; font-size: 14px; font-weight: 600; cursor: pointer; color: #1f2e4a; text-align: center; }
-
-.picker-day.selected { background: #1a3a6b; color: white; }
-
-.picker-day.empty { background: transparent; cursor: default; }
-
-.picker-day:active { transform: scale(0.95); }
-
-.picker-actions { display: flex; gap: 10px; margin-top: 15px; }
-
-.picker-actions button { flex: 1; background: #1a3a6b; border: none; color: white; padding: 10px; border-radius: 40px; font-weight: bold; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 14px; }
-
-.picker-actions button.outline { background: #e0e5ec; color: #1a3a6b; }
-
-/* ========== الوضع الليلي ========== */
-body.dark-mode .city-popup-card { background: #0f1e33; border: 1px solid #2a5298; }
-
-body.dark-mode .city-popup-header { background: #0a1628; }
-
-body.dark-mode .city-option { background: #0d1a2e; color: #a8c8f0; }
-
-body.dark-mode .prayer-table th { background: #0a1628; color: #e8f0ff; border-color: #2a5298; }
-
-body.dark-mode .prayer-table td { border-color: #2a5298 !important; background-color: #0f1e33; }
-
-body.dark-mode .prayer-table td:first-child { background: #0d1a2e !important; color: #cde1ff !important; border-left-color: #2a5298 !important; }
-
-body.dark-mode .prayer-table td:first-child:hover { background: #1a2a4a !important; }
-
-body.dark-mode .prayer-table td span { color: #ffecb3; background: rgba(42, 82, 152, 0.25); }
-
-body.dark-mode .prayer-table td:hover { background-color: rgba(42, 82, 152, 0.3); }
-
-body.dark-mode .weather-box { background: linear-gradient(135deg, #0a1628, #1a3a6b); }
-
-body.dark-mode .footer { background: #0f1e33; border-top-color: #1e3a5f; color: #6a90c0; }
-
-body.dark-mode .next-prayer-box { background: #0a1628; }
-
-body.dark-mode .datepicker-modal { background: #0f1e33; border: 1px solid #2a5298; }
-
-body.dark-mode .year-month-control { background: #0d1a2e; }
-
-body.dark-mode .year-month-control button { color: #a8c8f0; }
-
-body.dark-mode .picker-weekday { background: #0d1a2e; color: #a8c8f0; }
-
-body.dark-mode .picker-day { background: #0f1e33; color: #cde1ff; }
-
-body.dark-mode .picker-day.selected { background: #2a5298; }
-
-body.dark-mode .picker-actions button.outline { background: #0d1a2e; color: #a8c8f0; }
-
-body.dark-mode .location-popup-card { background: #0f1e33; border: 1px solid #2a5298; }
-
-body.dark-mode .popup-header { background: #0a1628; }
-
-body.dark-mode .info-row { background: #0d1a2e; }
-
-body.dark-mode .info-label { color: #8aa9d0; }
-
-body.dark-mode .info-value { color: #cde1ff; }
-
-body.dark-mode .coord-box { background: #101c30; }
-
-body.dark-mode .coord-value { color: #cde1ff; }
-
-body.dark-mode .action-btn { background: #101c30; color: #cde1ff; }
-
-body.dark-mode { background: #0a0f1a; }
-
-body.dark-mode .widget { background: #0f1e33; border-color: #1e3a5f; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
-
-body.dark-mode .day-name-ar, body.dark-mode .day-name-en, body.dark-mode .date-num, body.dark-mode .date-month-ar, body.dark-mode .date-month-syr, body.dark-mode .date-year, body.dark-mode .gregorian-line { color: #a8c8f0; }
-
-body.dark-mode .day-name-en { background: #0f1e33; border-color: #2a5298; }
-
-body.dark-mode .dates-row { border-color: #2a5298; }
-
-body.dark-mode .date-block:first-child { border-left-color: #2a5298; }
-
-body.dark-mode .gregorian-line .badge { background: #2a5298; border-color: #2a5298; color: #e8f0ff; }
-
-body.dark-mode .gregorian-line .coptic { border-color: #2a5298; color: #a8c8f0; }
-
-
-/* ========== حركات ========== */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-@keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-
-/* ========== انتقالات ========== */
-.widget, body, .day-name-ar, .day-name-en, .date-num, .date-month-ar, .date-year, .gregorian-line, .prayer-table th, .prayer-table td, .footer, .next-prayer-box, .weather-box { transition: background 0.5s, color 0.3s, border-color 0.3s; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { 
+    width: 100%; 
+    height: 100%; 
+    overflow: hidden; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  body {
+    background: #1a2a3a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Cairo', sans-serif;
+  }
+  .widget {
+    background: #ffffff;
+    width: 100%; 
+    height: 100%;
+    border-radius: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #b0bfcf;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  
+  /* الأزرار العلوية - فقط زر الوضع الليلي */
+  .top-buttons {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 10;
+  }
+  
+  #darkToggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    padding: 4px 8px;
+  }
+  #darkToggle:hover { opacity: 1; }
+  
+  /* شريط المدن المصغر */
+  .city-bar {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 45px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .city-btn {
+    font-family: 'Cairo', sans-serif;
+    font-size: 11px;
+    padding: 3px 10px;
+    border: 1px solid #1a3a6b;
+    border-radius: 20px;
+    background: white;
+    color: #1a3a6b;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .city-btn.active {
+    background: #1a3a6b;
+    color: white;
+  }
+  .city-btn:active {
+    transform: scale(0.95);
+  }
+  body.dark-mode .city-btn {
+    background: #0f1e33;
+    color: #a8c8f0;
+    border-color: #2a5298;
+  }
+  body.dark-mode .city-btn.active {
+    background: #2a5298;
+    color: white;
+  }
+  
+  /* نافذة اختيار المدن المنبثقة */
+.city-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  direction: rtl;
+  animation: fadeIn 0.2s ease;
+}
+
+  /* بطاقة اختيار المدن */
+.city-popup-card {
+  background: #ffffff;
+  width: 80%;
+  max-width: 300px;
+  border-radius: 24px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+  
+
+  /* رأس البطاقة */
+.city-popup-header {
+  background: #1a3a6b;
+  padding: 15px;
+  text-align: center;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+}
+  /* قائمة المدن */
+.city-list {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+  /* خيار المدينة الواحد */
+ .city-option {
+  padding: 12px;
+  text-align: center;
+  background: #f8fafd;
+  border-radius: 40px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #1a3a6b;
+  transition: all 0.2s;
+}
+ .city-option:active {
+  transform: scale(0.97);
+  background: #eef2f9;
+}
+  /* زر الإغلاق */
+.city-close-btn {
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-top: 1px solid #c5cfe0;
+  color: #a8c0e8;
+  font-weight: 600;
+  cursor: pointer;
+}
+ 
+
+  body.dark-mode .city-popup-card {
+    background: #0f1e33;
+    border: 1px solid #2a5298;
+  }
+
+  body.dark-mode .city-popup-header {
+    background: #0a1628;
+  }
+  
+  
+  
+  body.dark-mode .city-option {
+    background: #0d1a2e;
+    color: #a8c8f0;
+  }
+  
+  
+  .clickable-date { cursor: pointer; transition: opacity 0.1s; }
+  .clickable-date:active { opacity: 0.65; }
+  .day-name-ar {
+    text-align: center;
+    font-family: 'Amiri', serif;
+    font-size: clamp(16px, 7vmin, 42px);
+    font-weight: 800;
+    color: #1a3a6b;
+    line-height: 1.1;
+    margin: 0 0 1% 0;
+  }
+  .day-name-en {
+    text-align: center;
+    font-size: clamp(9px, 3.2vmin, 16px);
+    font-weight: 700;
+    color: #1a3a6b;
+    border-radius: 30px;
+    border: 1.5px solid #1a3a6b;
+    display: inline-block;
+    padding: 0.3% 3%;
+    margin: 0 auto 1%;
+    width: fit-content;
+    letter-spacing: 0.5px;
+    background: white;
+  }
+  .dates-row {
+    display: flex;
+    border-top: 1.5px solid #1a3a6b;
+    border-bottom: 1.5px solid #1a3a6b;
+    margin: 1% 0 1.5%;
+    flex: 0 0 auto;
+    cursor: pointer;
+  }
+  .date-block {
+    flex: 1;
+    text-align: center;
+    padding: 1% 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5%;
+  }
+  .date-block:first-child { border-left: 1.5px solid #1a3a6b; }
+  .date-num {
+    font-family: 'Amiri', serif;
+    font-size: clamp(24px, 15vmin, 60px);
+    font-weight: 800;
+    color: #1a3a6b;
+    line-height: 1;
+  }
+  .date-month-ar {
+    font-family: 'Amiri', serif;
+    font-size: clamp(14px, 5vmin, 18px);
+    font-weight: 700;
+    color: #1a3a6b;
+    padding: 0.3% 1%;
+    border-radius: 30px;
+    white-space: nowrap;
+  }
+  .date-month-syr {
+    font-family: 'Amiri', serif;
+    font-size: clamp(.7em, 2.5vmin, 1.5em);
+    font-weight: 600;
+    color: #1a3a6b;
+    background: transparent;
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+  .date-year {
+    font-family: 'Cairo', sans-serif;
+    font-size: clamp(12px, 4vmin, 18px);
+    font-weight: 800;
+    color: #1a3a6b;
+  }
+  .gregorian-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15%;
+    margin: 0.5% 0 1%;
+    font-size: clamp(9px, 5vmin, 14px);
+    color: #1a3a6b;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .gregorian-line .badge {
+    background: #1a3a6b;
+    color: white;
+    border: 1px solid #1a3a6b;
+    padding: 0.3% 5%;
+    border-radius: 30px;
+    white-space: nowrap;
+  }
+  .gregorian-line .coptic {
+    border: 1px solid #1a3a6b;
+    padding: 0.3% 5%;
+    border-radius: 30px;
+    white-space: nowrap;
+  }
+  .table-footer-container {
+    margin-top: 2vw;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 1%;
+  }
+  .prayer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(9px, 2vmin, 14px);
+    direction: rtl;
+    table-layout: fixed;
+    flex-shrink: 0;
+    background: transparent;
+  }
+  .prayer-table th, 
+  .prayer-table td {
+    padding: 2% 1%;
+    text-align: center;
+    border: 0.5px solid #c5cfe0;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  .prayer-table th {
+    background: #eef2f9;
+    font-weight: 800;
+    font-size: clamp(9px, 3vmin, 13px);
+    color: #0a2a4a;
+    letter-spacing: 0.3px;
+  }
+  .prayer-table td:first-child {
+    font-weight: 800;
+    background: #f8fafd;
+    font-size: clamp(9px, 2.5vmin, 13px);
+    color: #0f3a6b;
+    border-left-width: 1px;
+    cursor: pointer;
+  }
+  .prayer-table td:first-child:active {
+    opacity: 0.7;
+  }
+  .prayer-table td span {
+    font-weight: 800;
+    font-family: 'Cairo', 'Courier New', monospace;
+    font-size: clamp(9px, 3vmin, 13px);
+    letter-spacing: 0.5px;
+    background: transparent;
+    padding: 2px 4px;
+    border-radius: 8px;
+    display: inline-block;
+    color: #1a3a6b;
+  }
+  
+  body.dark-mode .prayer-table th {
+    background: #0a1628;
+    color: #e8f0ff;
+    border-color: #2a4c7a;
+    text-shadow: 0 0 1px rgba(0,0,0,0.3);
+  }
+  body.dark-mode .prayer-table td {
+    border-color: #1e3a5f;
+    background-color: #0f1e33;
+  }
+  body.dark-mode .prayer-table td:first-child {
+    background: #0d1a2e;
+    color: #d0e4ff;
+    font-weight: 800;
+    border-left-color: #2a5298;
+  }
+  body.dark-mode .prayer-table td span {
+    color: #f0f4fc;
+    background: rgba(42, 82, 152, 0.25);
+    font-weight: 800;
+    letter-spacing: 0.8px;
+  }
+  body.dark-mode .prayer-table td span {
+    font-family: 'Cairo', 'Courier New', monospace;
+    color: #ffecb3;
+  }
+  .prayer-table td:hover {
+    background-color: rgba(26, 58, 107, 0.08);
+  }
+  body.dark-mode .prayer-table td:hover {
+    background-color: rgba(42, 82, 152, 0.3);
+  }
+  
+  /* ========== الطقس ========== */
+  .weather-box {
+    background: linear-gradient(135deg, #1a3a6b 0%, #2a5298 100%);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    color: white;
+    direction: rtl;
+  }
+  
+  .weather-loading {
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  
+  .weather-city {
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  
+  .weather-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  .weather-temp-section {
+    text-align: center;
+  }
+  
+  .weather-temp {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  
+  .weather-unit {
+    font-size: 14px;
+    font-weight: 400;
+    vertical-align: super;
+  }
+  
+  .weather-condition {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+  
+  .weather-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .weather-details {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .weather-detail {
+    text-align: center;
+    flex: 1;
+  }
+  
+  .weather-detail-val {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .weather-wind {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .weather-wind-speed, .weather-wind-dir {
+    font-weight: 700;
+  }
+  
+  .weather-detail-lbl {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+  
+  body.dark-mode .weather-box {
+    background: linear-gradient(135deg, #0a1628, #1a3a6b);
+  }
+  
+  /* التذييل مع زر الموقع بجانب Mekkawy */
+  .footer {
+    text-align: center;
+    font-family: 'Amiri', serif;
+    font-size: clamp(8px, 3vmin, 11px);
+    font-weight: 600;
+    color: #1a3a6b;
+    padding: 8px 0;
+    border-top: 1px solid #c5cfe0;
+    background: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .footer span {
+    cursor: pointer;
+  }
+  .footer .location-icon {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #1a3a6b;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+  }
+  .footer .location-icon:active {
+    transform: scale(0.9);
+  }
+  body.dark-mode .footer .location-icon {
+    color: #a8c8f0;
+  }
+  
+  .next-prayer-box {
+    background: #1a3a6b;
+    border-radius: 8px;
+    margin-top: 2vw;
+    padding: 2vw 3vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    direction: rtl;
+  }
+  .next-prayer-label { color: #a8c0e8; font-size: 2.5vw; font-weight: 600; }
+  .next-prayer-name  { color: #fff; font-family: 'Amiri', serif; font-size: 5vw; font-weight: 700; margin-top: .5vw; }
+  .next-prayer-time  { color: #f0c040; font-size: 3vw; font-weight: 600; margin-top: .3vw; }
+  .countdown-box     { text-align: center; }
+  .countdown-label   { color: #a8c0e8; font-size: 2.5vw; }
+  .countdown-timer   { color: #fff; font-size: 6vw; font-weight: 700; letter-spacing: 1px; margin-top: .5vw; }
+  .test-audio-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #f0c040;
+    font-size: clamp(8px, 2.2vmin, 11px);
+    padding: 2px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 5px;
+  }
+
+  body.dark-mode { background: #0a0f1a; }
+  body.dark-mode .widget {
+    background: #0f1e33;
+    border-color: #1e3a5f;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  body.dark-mode .day-name-ar,
+  body.dark-mode .day-name-en,
+  body.dark-mode .date-num,
+  body.dark-mode .date-month-ar,
+  body.dark-mode .date-month-syr,
+  body.dark-mode .date-year,
+  body.dark-mode .gregorian-line { color: #a8c8f0; }
+  body.dark-mode .day-name-en {
+    background: #0f1e33;
+    border-color: #2a5298;
+  }
+  body.dark-mode .dates-row { border-color: #2a5298; }
+  body.dark-mode .date-block:first-child { border-left-color: #2a5298; }
+  body.dark-mode .gregorian-line .badge {
+    background: #2a5298;
+    border-color: #2a5298;
+    color: #e8f0ff;
+  }
+  body.dark-mode .gregorian-line .coptic {
+    border-color: #2a5298;
+    color: #a8c8f0;
+  }
+  body.dark-mode .footer {
+    background: #0f1e33;
+    border-top-color: #1e3a5f;
+    color: #6a90c0;
+  }
+  body.dark-mode .next-prayer-box { background: #0a1628; }
+  
+  #pwaInstallBtn {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f766e;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    z-index: 1001;
+    font-size: 12px;
+  }
+  
+  /* ========== نافذة الموقع (POPUP) ========== */
+  .location-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    animation: fadeIn 0.2s ease;
+  }
+  
+  .location-popup-card {
+    background: #ffffff;
+    width: 90%;
+    max-width: 380px;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  }
+  
+  body.dark-mode .location-popup-card {
+    background: #0f1e33;
+    border: 1px solid #2a5298;
+  }
+  
+  .popup-header {
+    background: #1a3a6b;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+  
+  body.dark-mode .popup-header {
+    background: #0a1628;
+  }
+  
+  .popup-header h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0;
+  }
+  
+  .close-popup {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  
+  .close-popup:hover {
+    background: rgba(255,255,255,0.4);
+  }
+  
+  .popup-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #f8fafd;
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+  
+  body.dark-mode .info-row {
+    background: #0d1a2e;
+  }
+  
+  .info-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6c86a3;
+    letter-spacing: 0.5px;
+  }
+  
+  body.dark-mode .info-label {
+    color: #8aa9d0;
+  }
+  
+  .info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a2c44;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+  
+  body.dark-mode .info-value {
+    color: #cde1ff;
+  }
+  
+  /* الإحداثيات عمودية */
+  .coord-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .coord-box {
+    background: #eef2f9;
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+  }
+  
+  body.dark-mode .coord-box {
+    background: #101c30;
+  }
+  
+  .coord-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4a627a;
+    margin-bottom: 4px;
+  }
+  
+  .coord-value {
+    font-size: 14px;
+    font-weight: 800;
+    font-family: monospace;
+    margin-top: 4px;
+    color: #1a3a6b;
+  }
+  
+  body.dark-mode .coord-value {
+    color: #cde1ff;
+  }
+  
+  .google-link {
+    background: #1a73e8;
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    padding: 12px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .google-link:hover {
+    background: #0d62cc;
+    transform: scale(0.98);
+  }
+  
+  /* الأزرار أفقية */
+  .action-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    flex: 1;
+    min-width: 100px;
+    background: #eef2f9;
+    border: none;
+    padding: 10px 8px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.2s;
+    color: #1a3a6b;
+    white-space: nowrap;
+  }
+  
+  body.dark-mode .action-btn {
+    background: #101c30;
+    color: #cde1ff;
+  }
+  
+  .action-btn:active {
+    transform: scale(0.96);
+  }
+  
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .copy-success {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a3a6b;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    z-index: 2100;
+    animation: fadeOut 2s forwards;
+  }
+  
+  /* ========== نافذة منتقي التاريخ (Date Picker) ========== */
+  .datepicker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+  }
+  
+  .datepicker-overlay.open {
+    display: flex;
+  }
+  
+  .datepicker-modal {
+    background: white;
+    width: 330px;
+    max-width: 90%;
+    border-radius: 24px;
+    box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+    padding: 16px;
+    text-align: center;
+  }
+  
+  body.dark-mode .datepicker-modal {
+    background: #0f1e33;
+    border: 1px solid #2a5298;
+  }
+  
+  .year-month-control {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    background: #eef2f7;
+    padding: 8px 12px;
+    border-radius: 50px;
+    margin: 0 auto 15px;
+    width: fit-content;
+  }
+  
+  body.dark-mode .year-month-control {
+    background: #0d1a2e;
+  }
+  
+  .year-month-control button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 10px;
+    color: #1a3a6b;
+  }
+  
+  body.dark-mode .year-month-control button {
+    color: #a8c8f0;
+  }
+  
+  .year-month-control span {
+    font-size: 16px;
+    font-weight: 800;
+    min-width: 110px;
+  }
+  
+  .picker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin: 15px 0;
+  }
+  
+  .picker-weekday {
+    font-size: 12px;
+    font-weight: bold;
+    color: #1a3a6b;
+    background: #eef2f7;
+    padding: 8px 0;
+    border-radius: 30px;
+    text-align: center;
+  }
+  
+  body.dark-mode .picker-weekday {
+    background: #0d1a2e;
+    color: #a8c8f0;
+  }
+  
+  .picker-day {
+    background: #f9f9fc;
+    padding: 10px 0;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #1f2e4a;
+    text-align: center;
+  }
+  
+  body.dark-mode .picker-day {
+    background: #0f1e33;
+    color: #cde1ff;
+  }
+  
+  .picker-day.selected {
+    background: #1a3a6b;
+    color: white;
+  }
+  
+  body.dark-mode .picker-day.selected {
+    background: #2a5298;
+  }
+  
+  .picker-day.empty {
+    background: transparent;
+    cursor: default;
+  }
+  
+  .picker-day:active {
+    transform: scale(0.95);
+  }
+  
+  .picker-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .picker-actions button {
+    flex: 1;
+    background: #1a3a6b;
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+  }
+  
+  .picker-actions button.outline {
+    background: #e0e5ec;
+    color: #1a3a6b;
+  }
+  
+  body.dark-mode .picker-actions button.outline {
+    background: #0d1a2e;
+    color: #a8c8f0;
+  }
+  
+  #azanOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    backdrop-filter: blur(5px);
+  }
+  
+  .azan-card {
+    background: linear-gradient(135deg, #1a3a6b 0%, #0f2a4a 100%);
+    border-radius: 32px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    max-width: 300px;
+    width: 85%;
+    border: 1px solid rgba(255,215,0,0.3);
+  }
+  
+  .azan-icon { font-size: 64px; margin-bottom: 15px; }
+  .azan-label { color: #f0c040; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .azan-name { color: #ffffff; font-size: 42px; font-weight: 800; margin-bottom: 30px; }
+  .azan-stop-btn {
+    background: #f0c040;
+    border: none;
+    color: #1a3a6b;
+    padding: 12px 35px;
+    border-radius: 60px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+  
+  .widget, body, .day-name-ar, .day-name-en, .date-num, .date-month-ar,
+  .date-year, .gregorian-line, .prayer-table th, .prayer-table td,
+  .footer, .next-prayer-box, .weather-box {
+    transition: background 0.5s, color 0.3s, border-color 0.3s;
+  }
 </style>
 </head>
 <body>
 
+<button id="pwaInstallBtn" style="display: none;">📱 تثبيت التطبيق</button>
+
 <div class="widget" id="widget">
+  <!-- زر الوضع الليلي في الأعلى يمين -->
   <div class="top-buttons">
     <button id="darkToggle" title="تبديل الوضع الليلي">🌙</button>
   </div>
+  
+  <!-- شريط المدن المصغر -->
+  <div class="city-bar" id="cityBar"></div>
   
   <div class="day-name-ar clickable-date" id="dayAr">...</div>
   <div class="day-name-en clickable-date" id="dayEn">...</div>
@@ -356,18 +1104,180 @@ body.dark-mode .gregorian-line .coptic { border-color: #2a5298; color: #a8c8f0; 
       <tbody id="prayerBody"></tbody>
     </table>
     
+    <!-- ========== الطقس ========== -->
     <div class="weather-box" id="weatherBox">
       <div class="weather-loading">☁️ جاري تحميل الطقس...</div>
     </div>
     
+    <!-- التذييل مع زر الموقع بجانب Mekkawy -->
     <div class="footer">
       <span onclick="location.reload();" style="cursor:pointer;">Mekkawy</span>
+      <button class="location-icon" id="locationFooterBtn" title="الموقع">📍</button>
     </div>
   </div>
 </div>
 
 <script>
-// ======================== البيانات ========================
+// ======================== بيانات الموقع ========================
+const DEFAULT_LOCATION_DATA = {
+  latitude: 0,
+  latitudeDMS: "0°0'0.0000\" N",
+  longitude: 0,
+  longitudeDMS: "0°0'0.0000\" E",
+  address: "------"
+};
+
+let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
+let locationIsLive = false;
+
+function toDMS(value, isLat) {
+  const abs = Math.abs(value);
+  let deg = Math.floor(abs);
+  let minFloat = (abs - deg) * 60;
+  let min = Math.floor(minFloat);
+  let sec = (minFloat - min) * 60;
+  if (sec >= 59.99995) {
+    sec = 0;
+    min++;
+    if (min >= 60) {
+      min = 0;
+      deg++;
+    }
+  }
+  const dir = isLat ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
+  return `${deg}°${min}'${sec.toFixed(4)}" ${dir}`;
+}
+
+function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('المتصفح لا يدعم تحديد الموقع'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve(pos.coords),
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      headers: { 'Accept-Language': 'ar' }
+    });
+    const data = await resp.json();
+    if (data && data.display_name) return data.display_name;
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function getGoogleMapsLink() {
+  if (!locationIsLive) return '#';
+  return `https://www.google.com/maps?q=${LOCATION_DATA.latitude},${LOCATION_DATA.longitude}`;
+}
+
+function showLocationPopup() {
+  const existing = document.querySelector('.location-popup-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'location-popup-overlay';
+
+  const card = document.createElement('div');
+  card.className = 'location-popup-card';
+
+  function renderCard() {
+    card.innerHTML = `
+      <div class="popup-header">
+        <h3>📍 موقعي الحالي</h3>
+        <button class="close-popup" id="closeLocationPopup">✕</button>
+      </div>
+      <div class="popup-content">
+        <div class="info-row">
+          <div class="info-label">العنوان التفصيلي ${locationIsLive ? '(GPS)' : '(افتراضي)'}</div>
+          <div class="info-value" id="popupAddress">${escapeHtml(LOCATION_DATA.address)}</div>
+        </div>
+        <div class="coord-row">
+          <div class="coord-box">
+            <div class="coord-label">خط العرض</div>
+            <div class="coord-value" id="popupLat">${LOCATION_DATA.latitude}°</div>
+            <div class="coord-value" style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.latitudeDMS}</div>
+          </div>
+          <div class="coord-box">
+            <div class="coord-label">خط الطول</div>
+            <div class="coord-value" id="popupLng">${LOCATION_DATA.longitude}°</div>
+            <div class="coord-value" style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
+          </div>
+        </div>
+        <a href="${getGoogleMapsLink()}" target="_blank" class="google-link" ${locationIsLive ? '' : 'style="opacity:0.5;pointer-events:none;"'}>
+          🗺️ فتح في خرائط جوجل
+        </a>
+        <div class="action-buttons">
+          <button class="action-btn" id="copyAddressBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📋 نسخ العنوان</button>
+          <button class="action-btn" id="copyCoordsBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📍 نسخ الإحداثيات</button>
+          <button class="action-btn" id="shareLocationBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📤 مشاركة الموقع</button>
+        </div>
+        <button class="action-btn" id="refreshLocationBtn" style="margin-top:0;">🔄 تحديث الموقع من GPS</button>
+      </div>
+    `;
+    attachCardEvents();
+  }
+
+  function attachCardEvents() {
+    document.getElementById('closeLocationPopup')?.addEventListener('click', () => overlay.remove());
+    document.getElementById('copyAddressBtn')?.addEventListener('click', async () => await copyToClipboard(LOCATION_DATA.address, "تم نسخ العنوان ✅"));
+    document.getElementById('copyCoordsBtn')?.addEventListener('click', async () => await copyToClipboard(`${LOCATION_DATA.latitude}, ${LOCATION_DATA.longitude}`, "تم نسخ الإحداثيات 📍"));
+    document.getElementById('shareLocationBtn')?.addEventListener('click', async () => {
+      const shareData = { title: 'موقعي', text: LOCATION_DATA.address, url: getGoogleMapsLink() };
+      if (navigator.share) try { await navigator.share(shareData); } catch(e) {}
+      else await copyToClipboard(getGoogleMapsLink(), "رابط الموقع منسوخ");
+    });
+    document.getElementById('refreshLocationBtn')?.addEventListener('click', () => fetchLiveLocation());
+  }
+
+  async function fetchLiveLocation() {
+    const btn = document.getElementById('refreshLocationBtn');
+    if (btn) { btn.disabled = true; btn.innerText = '⏳ جارٍ تحديد الموقع...'; }
+    try {
+      const coords = await getCurrentLocation();
+      const lat = coords.latitude, lng = coords.longitude;
+      const address = await reverseGeocode(lat, lng);
+      LOCATION_DATA = {
+        latitude: Math.round(lat * 100000) / 100000,
+        longitude: Math.round(lng * 100000) / 100000,
+        latitudeDMS: toDMS(lat, true),
+        longitudeDMS: toDMS(lng, false),
+        address: address || DEFAULT_LOCATION_DATA.address
+      };
+      locationIsLive = true;
+      renderCard();
+      showToast('تم تحديث الموقع ✅');
+    } catch (e) { showToast('تعذر تحديد الموقع'); }
+  }
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  renderCard();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  fetchLiveLocation();
+}
+
+async function copyToClipboard(text, successMsg) {
+  try { await navigator.clipboard.writeText(text); showToast(successMsg); } 
+  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(successMsg); }
+}
+function showToast(msg) {
+  const existing = document.querySelector('.copy-success'); if(existing) existing.remove();
+  const toast = document.createElement('div'); toast.className = 'copy-success'; toast.innerText = msg; document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+// ======================== بيانات التطبيق الأساسية ========================
 const CITIES = [
   { name: 'القاهرة', lat: 30.0444, lng: 31.2357 },
   { name: 'الإسكندرية', lat: 31.2001, lng: 29.9187 },
@@ -384,22 +1294,27 @@ const COPTIC_MONTHS = ['توت', 'بابه', 'هاتور', 'كيهك', 'طوبه
 
 let currentCity = 0;
 let currentDisplayDate = new Date();
+let activePickerDate = new Date();
 let isLoading = false;
 let alertedFor = null;
 let prayerData = null;
 let countdownInterval = null;
+let pickerModal = null;
 let darkModeManual = null;
+
+const settings = { offsets: { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 } };
 
 function toAr(n) { return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
 function isToday() { const t = new Date(); return currentDisplayDate.toDateString() === t.toDateString(); }
 function getViewDate() { return currentDisplayDate; }
 function toMins(t24, offset) { if(!t24) return null; const parts = t24.slice(0,5).split(':'); if(parts.length<2) return null; const h=parseInt(parts[0],10), m=parseInt(parts[1],10); if(isNaN(h)||isNaN(m)) return null; return h*60+m+(offset||0); }
 function fmtTime(t24, offset) { const total=toMins(t24,offset); if(total===null) return '--:--'; const totalMod=((total%1440)+1440)%1440; const h=Math.floor(totalMod/60), m=totalMod%60; const h12=(h%12)||12; const ampm=h<12?'ص':'م'; return `${h12}:${String(m).padStart(2,'0')} ${ampm}`; }
-function convertTo12HourFormat(time24) { if(!time24||time24==='--:--') return '--:--'; const [hours,minutes]=time24.split(':'); const h=parseInt(hours,10); const h12=(h%12)||12; return `${h12}:${minutes} ${h<12?'ص':'م'}`; }
+function convertTo12HourFormat(time24) { if(!time24||time24==='--:--') return '--:--'; const [hours,minutes]=time24.split(':'); const h=parseInt(hours,10); const h12=(h%12)||12; return `${minutes} ${h12}`; }
 function toCoptic(date) { let y=date.getFullYear()-283; let ny=new Date(date.getFullYear(),8,11); if(date<ny) { y--; ny=new Date(date.getFullYear()-1,8,11); } const diff=Math.floor((date-ny)/86400000); const month=Math.floor(diff/30); const day=diff%30+1; return { day, month, year:y }; }
 
-// ======================== الأذان ========================
+// ======================== دوال الأذان ========================
 const AZAN_URLS_LIST = [
+  'azan.mp3',
   'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
   'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3'
 ];
@@ -466,6 +1381,22 @@ async function playAlert(prayerName) {
       return; 
     } catch(e){} 
   } 
+  try { 
+    const ctx=new (AudioContext||webkitAudioContext)(); 
+    await ctx.resume(); 
+    [880,660,770,880].forEach((freq,i)=>{ 
+      const o=ctx.createOscillator(); 
+      const g=ctx.createGain(); 
+      o.connect(g); 
+      g.connect(ctx.destination); 
+      o.frequency.value=freq; 
+      const t0=ctx.currentTime+i*0.7; 
+      g.gain.setValueAtTime(0.4,t0); 
+      g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); 
+      o.start(t0); 
+      o.stop(t0+0.6); 
+    }); 
+  } catch(e){} 
 }
 
 function updateCountdown() { 
@@ -505,7 +1436,6 @@ function updateCountdown() {
   if(diffSec>60&&alertedFor===next.key) alertedFor=null; 
 }
 
-// ======================== دوال API ========================
 async function fetchHijriDate(date) { 
   const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
   try { 
@@ -530,42 +1460,19 @@ async function fetchPrayerTimesRaw(date,city){
   } catch(e){ return null; } 
 }
 
-// ======================== نافذة اختيار المدينة ========================
-function showCitySelectionPopup() {
-  const existing = document.querySelector('.city-popup-overlay');
-  if (existing) existing.remove();
-  
-  const overlay = document.createElement('div');
-  overlay.className = 'city-popup-overlay';
-  
-  const card = document.createElement('div');
-  card.className = 'city-popup-card';
-  card.innerHTML = `
-    <div class="city-popup-header">📍 اختر مدينة</div>
-    <div class="city-list" id="cityList"></div>
-    <button class="city-close-btn" id="closeCityPopup">✕ إغلاق</button>
-  `;
-  
-  const cityList = card.querySelector('#cityList');
-  CITIES.forEach((city, index) => {
-    const option = document.createElement('div');
-    option.className = 'city-option';
-    option.textContent = city.name;
-    option.onclick = async () => {
-      currentCity = index;
-      await refreshWidget(currentDisplayDate);
-      overlay.remove();
-    };
-    cityList.appendChild(option);
-  });
-  
-  card.querySelector('#closeCityPopup').onclick = () => overlay.remove();
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+function extractDisplayTimes(rawData){ 
+  if(!rawData) return null; 
+  const t=rawData.timings; 
+  return { 
+    fajr:convertTo12HourFormat(t.Fajr.slice(0,5)), 
+    sunrise:convertTo12HourFormat(t.Sunrise.slice(0,5)), 
+    dhuhr:convertTo12HourFormat(t.Dhuhr.slice(0,5)), 
+    asr:convertTo12HourFormat(t.Asr.slice(0,5)), 
+    maghrib:convertTo12HourFormat(t.Maghrib.slice(0,5)), 
+    isha:convertTo12HourFormat(t.Isha.slice(0,5))
+  }; 
 }
 
-// ======================== دوال العرض ========================
 function updateGregorianDisplay(date){ 
   document.getElementById('dayAr').innerText=AR_DAYS[date.getDay()]; 
   document.getElementById('dayEn').innerText=EN_DAYS[date.getDay()]; 
@@ -585,53 +1492,119 @@ function updateHijriDisplay(hijri){
   } 
 }
 
-async function updatePrayerTable() {
-  const date = getViewDate();
-  const city = CITIES[currentCity];
+function updatePrayerTableDisplay(prayerTimes, cityName) {
   const tbody = document.getElementById('prayerBody');
   tbody.innerHTML = '';
-  
+
   const row = tbody.insertRow();
-  
-  // خلية اسم المدينة - قابلة للنقر
   const cityCell = row.insertCell(0);
-  cityCell.innerText = city.name;
+  cityCell.innerText = cityName;
   cityCell.style.cursor = 'pointer';
-  cityCell.style.backgroundColor = '#f8fafd';
-  cityCell.style.fontWeight = '800';
-  cityCell.onclick = showCitySelectionPopup;
   cityCell.title = 'اضغط لاختيار مدينة أخرى';
-  
-  const rawData = await fetchPrayerTimesRaw(date, city);
-  if (rawData && rawData.timings) {
-    const t = rawData.timings;
-    row.insertCell(1).innerHTML = `<span>${convertTo12HourFormat(t.Fajr.slice(0,5))}</span>`;
-    row.insertCell(2).innerHTML = `<span>${convertTo12HourFormat(t.Sunrise.slice(0,5))}</span>`;
-    row.insertCell(3).innerHTML = `<span>${convertTo12HourFormat(t.Dhuhr.slice(0,5))}</span>`;
-    row.insertCell(4).innerHTML = `<span>${convertTo12HourFormat(t.Asr.slice(0,5))}</span>`;
-    row.insertCell(5).innerHTML = `<span>${convertTo12HourFormat(t.Maghrib.slice(0,5))}</span>`;
-    row.insertCell(6).innerHTML = `<span>${convertTo12HourFormat(t.Isha.slice(0,5))}</span>`;
-    prayerData = rawData;
+  cityCell.onclick = () => showCitySelectionPopup();
+  if (prayerTimes) {
+    row.insertCell(1).innerHTML = `<span>${prayerTimes.fajr}</span>`;
+    row.insertCell(2).innerHTML = `<span>${prayerTimes.sunrise}</span>`;
+    row.insertCell(3).innerHTML = `<span>${prayerTimes.dhuhr}</span>`;
+    row.insertCell(4).innerHTML = `<span>${prayerTimes.asr}</span>`;
+    row.insertCell(5).innerHTML = `<span>${prayerTimes.maghrib}</span>`;
+    row.insertCell(6).innerHTML = `<span>${prayerTimes.isha}</span>`;
   } else {
-    row.insertCell(1).innerHTML = '<span>--:--</span>';
-    row.insertCell(2).innerHTML = '<span>--:--</span>';
-    row.insertCell(3).innerHTML = '<span>--:--</span>';
-    row.insertCell(4).innerHTML = '<span>--:--</span>';
-    row.insertCell(5).innerHTML = '<span>--:--</span>';
-    row.insertCell(6).innerHTML = '<span>--:--</span>';
-  }
-  
-  for (let i = 0; i <= 6; i++) {
-    if (row.cells[i]) {
-      row.cells[i].style.padding = '2% 1%';
-      row.cells[i].style.textAlign = 'center';
-      row.cells[i].style.border = '0.5px solid #c5cfe0';
-    }
+    const cell = row.insertCell(1);
+    cell.colSpan = 6;
+    cell.innerText = 'خطأ في التحميل';
   }
 }
 
+async function refreshWidget(targetDate) {
+  if (isLoading) return;
+  isLoading = true;
+  const date = targetDate || currentDisplayDate;
+  updateGregorianDisplay(date);
+  try {
+    const hijri = await fetchHijriDate(date);
+    if (hijri) updateHijriDisplay(hijri);
+    const city = CITIES[currentCity];
+    const rawData = await fetchPrayerTimesRaw(date, city);
+    if (rawData) prayerData = rawData;
+    const displayTimes = extractDisplayTimes(rawData);
+    updatePrayerTableDisplay(displayTimes, city.name);
+    updateCountdown();
+    await loadWeather();
+  } catch(e) { console.error(e); }
+  isLoading = false;
+}
+
+function showCitySelectionPopup() {
+  const existing = document.querySelector('.city-popup-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'city-popup-overlay';
+  const card = document.createElement('div');
+  card.className = 'city-popup-card';
+  card.innerHTML = `<div class="city-popup-header">📌 اختر مدينة</div><div class="city-list" id="cityList"></div><button class="city-close-btn" id="closeCityPopup">✕ إغلاق</button>`;
+  const cityList = card.querySelector('#cityList');
+  CITIES.forEach((city, index) => {
+    const option = document.createElement('div');
+    option.className = 'city-option';
+    option.textContent = city.name;
+    option.onclick = async () => {
+      currentCity = index;
+      await refreshPrayerTimes();             // تحديث مواقيت الصلاة
+      updateCityNameInTable(city.name);       // تحديث اسم المدينة في الجدول
+      overlay.remove();
+    };
+    cityList.appendChild(option);
+  });
+  card.querySelector('#closeCityPopup').onclick = () => overlay.remove();
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
+function updateCityNameInTable(cityName) {
+  const firstCell = document.querySelector('#prayerBody td:first-child');
+  if (firstCell) {
+    firstCell.textContent = cityName;
+  }
+} 
+// دالة تحديث مواقيت الصلاة (مثال)
+async function refreshPrayerTimes() {
+  const city = CITIES[currentCity];
+  const date = new Date();
+  // هنا يتم جلب المواقيت من API
+  console.log(`جلب مواقيت الصلاة لمدينة: ${city.name}`);
+  // ... باقي كود جلب المواقيت
+}
+// دالة بناء جدول الصلاة (مع جعل اسم المدينة قابل للنقر)
+function buildPrayerTable() {
+  const tbody = document.getElementById('prayerBody');
+  tbody.innerHTML = '';
+  const row = tbody.insertRow();
+// خلية اسم المدينة - قابلة للنقر
+  const cityCell = row.insertCell(0);
+  cityCell.textContent = CITIES[currentCity].name;
+  cityCell.style.cursor = 'pointer';
+  cityCell.style.backgroundColor = '#f8fafd';
+  cityCell.style.fontWeight = '800';
+  cityCell.onclick = showCitySelectionPopup;  // ربط حدث النقر
+  cityCell.title = 'اضغط لاختيار مدينة أخرى';
+ // باقي خلايا المواقيت...
+  row.insertCell(1).innerHTML = '<span>--:--</span>'; // الفجر
+  row.insertCell(2).innerHTML = '<span>--:--</span>'; // الشروق
+  row.insertCell(3).innerHTML = '<span>--:--</span>'; // الظهر
+  row.insertCell(4).innerHTML = '<span>--:--</span>'; // العصر
+  row.insertCell(5).innerHTML = '<span>--:--</span>'; // المغرب
+  row.insertCell(6).innerHTML = '<span>--:--</span>'; // العشاء
+}
+
+function updateCityBarActive() {
+  const btns = document.querySelectorAll('.city-btn');
+  btns.forEach((btn, i) => { if (i === currentCity) btn.classList.add('active'); else btn.classList.remove('active'); });
+}
+
 // ======================== الطقس ========================
-const WEATHER_KEY = '819c643e98f045faadd50730260106';
+const WEATHER_KEY = '819c643e98f045faadd50730260106';  // ضع مفتاحك هنا
 
 function getWindDirectionShort(deg) {
   const directions = ['↑ ش', '↗ شش', '→ ش', '↘ جش', '↓ ج', '↙ جغ', '← غ', '↖ شغ'];
@@ -644,6 +1617,7 @@ async function loadWeather() {
   
   weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
   
+  // المحاولة الأولى: WeatherAPI.com (باستخدام المفتاح)
   try {
     const url = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_KEY}&q=${city.lat},${city.lng}&lang=ar`;
     const response = await fetch(url);
@@ -691,12 +1665,13 @@ async function loadWeather() {
           </div>
         </div>
       `;
-      return;
+      return; // نجحت المحاولة الأولى، نخرج من الدالة
     }
   } catch(e) {
-    console.log('WeatherAPI failed');
+    console.log('WeatherAPI.com failed, trying fallback...');
   }
   
+  // المحاولة الثانية: wttr.in (بدون مفتاح) - فقط إذا فشل الأول
   try {
     const fallbackUrl = `https://wttr.in/${city.lat},${city.lng}?format=j1&lang=ar`;
     const response = await fetch(fallbackUrl);
@@ -711,15 +1686,19 @@ async function loadWeather() {
       const windDir = getWindDirectionShort(parseInt(current.winddirDegree));
       const visibility = current.visibility;
       const feelsLike = current.FeelsLikeC;
+      const icon = current.weatherIconUrl ? current.weatherIconUrl[0].value : '';
       
       weatherBox.innerHTML = `
-        <div class="weather-city">${city.name}</div>
+        <div class="weather-city">
+          ${city.name}
+          <span style="font-size:11px; opacity:0.7; margin-right:6px;" title="استخدام خدمة احتياطية (بدون مفتاح)">🔑</span>
+        </div>
         <div class="weather-main">
           <div class="weather-temp-section">
             <div class="weather-temp">${temp}<span class="weather-unit">°</span></div>
             <div class="weather-condition">${condition}</div>
           </div>
-          <div class="weather-icon">🌡️</div>
+          ${icon ? `<img class="weather-icon" src="${icon}" alt="${condition}">` : '<div class="weather-icon">🌡️</div>'}
         </div>
         <div class="weather-details">
           <div class="weather-detail">
@@ -744,39 +1723,135 @@ async function loadWeather() {
         </div>
       `;
       return;
+    } else {
+      weatherBox.innerHTML = '<div class="weather-loading">⚠️ لا توجد بيانات طقس</div>';
     }
   } catch(e) {
+    console.error('All weather APIs failed:', e);
     weatherBox.innerHTML = '<div class="weather-loading">⚠️ تعذر تحميل الطقس</div>';
   }
 }
 
-// ======================== منتقي التاريخ ========================
+// ======================== منتقي التاريخ (Date Picker) ========================
 function openDatePicker() { 
+  activePickerDate = new Date(currentDisplayDate); 
+  renderPicker(); 
+}
+
+function closePicker() { 
+  if (pickerModal) pickerModal.remove(); 
+  pickerModal = null; 
+}
+
+function renderPicker() { 
+  if (pickerModal) pickerModal.remove(); 
   const overlay = document.createElement('div'); 
   overlay.className = 'datepicker-overlay'; 
-  const y = currentDisplayDate.getFullYear(), m = currentDisplayDate.getMonth(); 
+  const y = activePickerDate.getFullYear(), m = activePickerDate.getMonth(); 
+  const firstDay = new Date(y, m, 1).getDay(); 
+  const daysInMonth = new Date(y, m + 1, 0).getDate(); 
+  let grid = []; 
+  for (let i = 0; i < firstDay; i++) grid.push(null); 
+  for (let d = 1; d <= daysInMonth; d++) grid.push(new Date(y, m, d)); 
+  while (grid.length % 7 !== 0) grid.push(null); 
+  const weekdays = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']; 
+  
   overlay.innerHTML = `
     <div class="datepicker-modal">
       <div class="year-month-control">
+        <button id="prevYear">««</button>
         <button id="prevMonth">‹</button>
         <span id="monthYear">${AR_MONTHS_G[m]} ${toAr(y)}</span>
         <button id="nextMonth">›</button>
+        <button id="nextYear">»»</button>
       </div>
+      <div class="picker-grid" id="pickerGrid"></div>
       <div class="picker-actions">
         <button id="todayBtn">📅 اليوم</button>
-        <button id="closePickerBtn">إلغاء</button>
+        <button id="closeBtn" class="outline">إلغاء</button>
       </div>
     </div>
-  `;
-  document.body.appendChild(overlay);
+  `; 
+  
+  document.body.appendChild(overlay); 
+  pickerModal = overlay; 
   overlay.classList.add('open');
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  
+  function buildGrid() { 
+    const container = document.getElementById('pickerGrid'); 
+    container.innerHTML = ''; 
+    weekdays.forEach(wd => { 
+      const d = document.createElement('div'); 
+      d.className = 'picker-weekday'; 
+      d.innerText = wd; 
+      container.appendChild(d); 
+    }); 
+    grid.forEach(dt => { 
+      const div = document.createElement('div'); 
+      div.className = 'picker-day'; 
+      if (!dt) { 
+        div.classList.add('empty'); 
+        div.innerText = ''; 
+      } else { 
+        div.innerText = toAr(dt.getDate()); 
+        if (dt.toDateString() === currentDisplayDate.toDateString()) 
+          div.classList.add('selected'); 
+        div.onclick = async () => { 
+          currentDisplayDate = new Date(dt); 
+          await refreshWidget(currentDisplayDate); 
+          closePicker(); 
+        }; 
+      } 
+      container.appendChild(div); 
+    }); 
+  } 
+  
+  function updateGrid() { 
+    const ny = activePickerDate.getFullYear(), nm = activePickerDate.getMonth(); 
+    document.getElementById('monthYear').innerText = `${AR_MONTHS_G[nm]} ${toAr(ny)}`; 
+    const fd = new Date(ny, nm, 1).getDay(); 
+    const dim = new Date(ny, nm + 1, 0).getDate(); 
+    let ng = []; 
+    for (let i = 0; i < fd; i++) ng.push(null); 
+    for (let d = 1; d <= dim; d++) ng.push(new Date(ny, nm, d)); 
+    while (ng.length % 7 !== 0) ng.push(null); 
+    grid = ng; 
+    buildGrid(); 
+  } 
+  
+  document.getElementById('prevMonth').onclick = () => { 
+    activePickerDate.setMonth(activePickerDate.getMonth() - 1); 
+    updateGrid(); 
+  }; 
+  document.getElementById('nextMonth').onclick = () => { 
+    activePickerDate.setMonth(activePickerDate.getMonth() + 1); 
+    updateGrid(); 
+  }; 
+  document.getElementById('prevYear').onclick = () => { 
+    activePickerDate.setFullYear(activePickerDate.getFullYear() - 1); 
+    updateGrid(); 
+  }; 
+  document.getElementById('nextYear').onclick = () => { 
+    activePickerDate.setFullYear(activePickerDate.getFullYear() + 1); 
+    updateGrid(); 
+  }; 
   document.getElementById('todayBtn').onclick = async () => { 
     currentDisplayDate = new Date(); 
     await refreshWidget(currentDisplayDate); 
-    overlay.remove(); 
-  };
-  document.getElementById('closePickerBtn').onclick = () => overlay.remove();
+    closePicker(); 
+  }; 
+  document.getElementById('closeBtn').onclick = closePicker; 
+  overlay.onclick = e => { 
+    if (e.target === overlay) closePicker(); 
+  }; 
+  buildGrid(); 
+}
+
+function attachEvents(){ 
+  const dateRow = document.getElementById('dateRow');
+  const gregLine = document.getElementById('gregLine');
+  if (dateRow) dateRow.addEventListener('click', openDatePicker);
+  if (gregLine) gregLine.addEventListener('click', openDatePicker);
 }
 
 // ======================== الوضع الليلي ========================
@@ -813,20 +1888,20 @@ document.getElementById('darkToggle').addEventListener('click',()=>{
   },6*3600*1000); 
 });
 
-// ======================== التهيئة ========================
-async function refreshWidget(targetDate) {
-  if (isLoading) return;
-  isLoading = true;
-  const date = targetDate || currentDisplayDate;
-  updateGregorianDisplay(date);
-  try {
-    const hijri = await fetchHijriDate(date);
-    if (hijri) updateHijriDisplay(hijri);
-    await updatePrayerTable();
-    updateCountdown();
-    await loadWeather();
-  } catch(e) { console.error(e); }
-  isLoading = false;
+function buildCityBar() {
+  const bar = document.getElementById('cityBar');
+  bar.innerHTML = '';
+  CITIES.forEach((city, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'city-btn' + (i === currentCity ? ' active' : '');
+    btn.textContent = city.name;
+    btn.onclick = async () => {
+      currentCity = i;
+      updateCityBarActive();
+      await refreshWidget(currentDisplayDate);
+    };
+    bar.appendChild(btn);
+  });
 }
 
 function startCountdownTimer(){ 
@@ -834,19 +1909,46 @@ function startCountdownTimer(){
   countdownInterval=setInterval(updateCountdown,1000); 
 }
 
-function attachEvents(){ 
-  document.getElementById('dateRow').addEventListener('click', openDatePicker);
-  document.getElementById('gregLine').addEventListener('click', openDatePicker);
-  document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
-}
+// ربط الأحداث
+document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
+document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
 
-// بدء التشغيل
+// التهيئة
+buildCityBar();
 attachEvents();
 startCountdownTimer();
 refreshWidget(new Date());
 setInterval(checkAutoTheme,60000); 
 checkAutoTheme();
-setInterval(() => { loadWeather(); }, 600000);
+document.addEventListener('DOMContentLoaded', () => {
+  buildPrayerTable();
+});
+// تحديث الطقس كل 10 دقائق
+setInterval(() => {
+  loadWeather();
+}, 600000);
+
+// ======================== تهيئة PWA ========================
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.PWAInstall) {
+        window.PWAInstall.init({
+            swPath: './sw.js',
+            autoRegisterSW: true,
+            showIOSGuideAuto: true
+        });
+    } else {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ SW registered:', reg))
+                    .catch(err => console.error('❌ SW failed:', err));
+            });
+        }
+    }
+});
 </script>
 </body>
 </html>
+
+
+
