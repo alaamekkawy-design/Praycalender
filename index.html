@@ -475,6 +475,234 @@
     font-size: 12px;
   }
   
+  /* ========== نافذة الموقع (POPUP) - جعلها عمودية ========== */
+  .location-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    animation: fadeIn 0.2s ease;
+  }
+  
+  .location-popup-card {
+    background: #ffffff;
+    width: 90%;
+    max-width: 380px;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  }
+  
+  body.dark-mode .location-popup-card {
+    background: #0f1e33;
+    border: 1px solid #2a5298;
+  }
+  
+  .popup-header {
+    background: #1a3a6b;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+  
+  body.dark-mode .popup-header {
+    background: #0a1628;
+  }
+  
+  .popup-header h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0;
+  }
+  
+  .close-popup {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  
+  .close-popup:hover {
+    background: rgba(255,255,255,0.4);
+  }
+  
+  .popup-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #f8fafd;
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+  
+  body.dark-mode .info-row {
+    background: #0d1a2e;
+  }
+  
+  .info-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6c86a3;
+    letter-spacing: 0.5px;
+  }
+  
+  body.dark-mode .info-label {
+    color: #8aa9d0;
+  }
+  
+  .info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a2c44;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+  
+  body.dark-mode .info-value {
+    color: #cde1ff;
+  }
+  
+  /* جعل الإحداثيات فوق بعضها (عمودية) */
+  .coord-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .coord-box {
+    background: #eef2f9;
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+  }
+  
+  body.dark-mode .coord-box {
+    background: #101c30;
+  }
+  
+  .coord-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #4a627a;
+    margin-bottom: 4px;
+  }
+  
+  .coord-value {
+    font-size: 14px;
+    font-weight: 800;
+    font-family: monospace;
+    margin-top: 4px;
+    color: #1a3a6b;
+  }
+  
+  body.dark-mode .coord-value {
+    color: #cde1ff;
+  }
+  
+  .google-link {
+    background: #1a73e8;
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    padding: 12px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .google-link:hover {
+    background: #0d62cc;
+    transform: scale(0.98);
+  }
+  
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  
+  .action-btn {
+    width: 100%;
+    background: #eef2f9;
+    border: none;
+    padding: 12px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.2s;
+    color: #1a3a6b;
+  }
+  
+  body.dark-mode .action-btn {
+    background: #101c30;
+    color: #cde1ff;
+  }
+  
+  .action-btn:active {
+    transform: scale(0.96);
+  }
+  
+  .action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .copy-success {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a3a6b;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    z-index: 2100;
+    animation: fadeOut 2s forwards;
+  }
+  
+  @keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+  
   /* أنماط إضافية */
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -483,6 +711,10 @@
   @keyframes slideUp {
     from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .datepicker-overlay, #azanOverlay {
+    /* الأنماط موجودة مسبقاً */
   }
   
   .widget, body, .day-name-ar, .day-name-en, .date-num, .date-month-ar,
