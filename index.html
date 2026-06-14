@@ -657,11 +657,11 @@
 <script>
 // ======================== بيانات الموقع (افتراضية، تُستبدل ببيانات GPS الفعلية) ========================
 const DEFAULT_LOCATION_DATA = {
-  latitude: --------,
-  latitudeDMS: "--------\" N",
-  longitude: ----------,
-  longitudeDMS: "---------\" E",
-  address: "------Egypt"
+  latitude: 0,
+  latitudeDMS: "0°0'0.0000\" N",
+  longitude: 0,
+  longitudeDMS: "0°0'0.0000\" E",
+  address: "------"
 };
 
 let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
@@ -670,10 +670,18 @@ let locationIsLive = false;
 // تحويل من درجات عشرية إلى صيغة DMS (درجات/دقائق/ثواني)
 function toDMS(value, isLat) {
   const abs = Math.abs(value);
-  const deg = Math.floor(abs);
-  const minFloat = (abs - deg) * 60;
-  const min = Math.floor(minFloat);
-  const sec = (minFloat - min) * 60;
+  let deg = Math.floor(abs);
+  let minFloat = (abs - deg) * 60;
+  let min = Math.floor(minFloat);
+  let sec = (minFloat - min) * 60;
+  if (sec >= 59.99995) {
+    sec = 0;
+    min++;
+    if (min >= 60) {
+      min = 0;
+      deg++;
+    }
+  }
   const dir = isLat ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
   return `${deg}°${min}'${sec.toFixed(4)}" ${dir}`;
 }
@@ -709,6 +717,7 @@ async function reverseGeocode(lat, lng) {
 
 // إنشاء رابط خرائط جوجل
 function getGoogleMapsLink() {
+  if (!locationIsLive) return '#';
   return `https://www.google.com/maps?q=${LOCATION_DATA.latitude},${LOCATION_DATA.longitude}`;
 }
 
@@ -747,13 +756,13 @@ function showLocationPopup() {
             <div style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
           </div>
         </div>
-        <a href="${getGoogleMapsLink()}" target="_blank" class="google-link">
+        <a href="${getGoogleMapsLink()}" target="_blank" class="google-link" ${locationIsLive ? '' : 'style="opacity:0.5;pointer-events:none;"'}>
           🗺️ فتح في خرائط جوجل
         </a>
         <div class="action-buttons">
-          <button class="action-btn" id="copyAddressBtn">📋 نسخ العنوان</button>
-          <button class="action-btn" id="copyCoordsBtn">📍 نسخ الإحداثيات</button>
-          <button class="action-btn" id="shareLocationBtn">📤 مشاركة الموقع</button>
+          <button class="action-btn" id="copyAddressBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📋 نسخ العنوان</button>
+          <button class="action-btn" id="copyCoordsBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📍 نسخ الإحداثيات</button>
+          <button class="action-btn" id="shareLocationBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📤 مشاركة الموقع</button>
         </div>
         <button class="action-btn" id="refreshLocationBtn" style="margin-top:0;">🔄 تحديث الموقع من GPS</button>
       </div>
@@ -827,9 +836,10 @@ function showLocationPopup() {
     }
   }
 
-  renderCard();
   overlay.appendChild(card);
   document.body.appendChild(overlay);
+
+  renderCard();
 
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) overlay.remove();
