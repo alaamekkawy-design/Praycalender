@@ -1,10 +1,8 @@
-const CACHE_NAME = 'islamic-calendar-v4';
+const CACHE_NAME = 'islamic-calendar-v3';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json'
-  // تم حذف './Location.html' لأنه غير موجود
-  // الأيقونات ستُخزَّن تلقائياً عند جلبها
 ];
 
 // تثبيت Service Worker
@@ -20,7 +18,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// اعتراض الطلبات (هذا سيخزِّن الأيقونات تلقائياً عند الحاجة)
+// اعتراض الطلبات
 self.addEventListener('fetch', event => {
   // استثناء طلبات API
   if (event.request.url.includes('aladhan.com')) {
@@ -32,11 +30,10 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => {
         if (response) {
-          return response; // من التخزين المؤقت
+          return response;
         }
         
         return fetch(event.request).then(response => {
-          // تخزين الملفات الناجحة (بما فيها الصور من مجلد icons)
           if (response && response.status === 200) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
