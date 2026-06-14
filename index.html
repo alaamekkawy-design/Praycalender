@@ -666,6 +666,42 @@
     تثبيت تطبيق مواقيت الصلاة على جهازك
 </button>
 
+<!-- أضف هذا الـ HTML في مكان مناسب (مثلاً بعد زر التثبيت) -->
+<div id="iosInstallGuide" style="display: none; background: #1a3a6b; color: white; padding: 12px; border-radius: 12px; margin-top: 10px; text-align: center; font-size: 12px; position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 1000;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>📱 لتثبيت التطبيق على iPhone:</span>
+        <button id="closeIosGuide" style="background: none; border: none; color: white; font-size: 18px;">✕</button>
+    </div>
+    <div style="margin-top: 8px;">
+        1. اضغط على أيقونة المشاركة 📤<br>
+        2. اختر "إلى الشاشة الرئيسية"<br>
+        3. اضغط "إضافة"
+    </div>
+</div>
+
+<script>
+// الكشف عن متصفح Safari على iOS
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function isSafari() {
+    return /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+}
+
+// إظهار دليل التثبيت لمستخدمي iOS
+if (isIOS() && !window.matchMedia('(display-mode: standalone)').matches) {
+    const guide = document.getElementById('iosInstallGuide');
+    if (guide) {
+        guide.style.display = 'block';
+        document.getElementById('closeIosGuide')?.addEventListener('click', () => {
+            guide.style.display = 'none';
+        });
+    }
+}
+</script>
+ 
+
 <div class="widget" id="widget">
   <button id="locationBtn" title="الموقع والإعدادات">📍 الموقع</button>
   <button id="darkToggle" title="تبديل الوضع الليلي">🌙</button>
