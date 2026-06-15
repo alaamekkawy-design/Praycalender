@@ -1876,12 +1876,13 @@ async function saveAsImage(withZodiac) {
   document.getElementById('pv-gregDay').textContent = toAr(date.getDate());
   document.getElementById('pv-gregMonth').textContent = AR_MONTHS_G[date.getMonth()];
   document.getElementById('pv-gregYear').textContent = toAr(date.getFullYear());
-  document.getElementById('pv-greg').textContent = `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
   
   // التاريخ القبطي
   const cop = toCoptic(date);
   document.getElementById('pv-coptic').textContent = `${toAr(cop.day)} ${COPTIC_MONTHS[cop.month % 13]} ${toAr(cop.year)}`;
+  document.getElementById('pv-greg').textContent = `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()}`;
   
+	
   // التاريخ الهجري
   const hijri = await fetchHijriDate(date);
   if (hijri) {
