@@ -1,3 +1,14 @@
+// فرض طلب الإذن عند تحميل الصفحة (لأجهزة Android)
+if (/Android/i.test(navigator.userAgent)) {
+  setTimeout(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => console.log("✅ إذن الموقع ممنوح"),
+        () => console.log("❌ إذن الموقع غير ممنوح")
+      );
+    }
+  }, 1000);
+}
 // location.js - نسخة مبسطة ومضمونة
 const DEFAULT_LOCATION_DATA = {
   latitude: 0,
