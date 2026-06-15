@@ -4,13 +4,13 @@
  * 
  * كيفية الاستخدام:
  * 1. أضف هذا الملف إلى مشروعك: <script src="location.js" defer></script>
- * 2. أضف زر الموقع في HTML: <button id="locationBtn">📍 الموقع</button>
+ * 2. أضف زر الموقع في HTML: <button id="locationFooterBtn">📍 الموقع</button>
  * 3. استدعِ initGPSLocation() بعد تحميل الصفحة
  */
 
 // ======================== البيانات الأساسية ========================
 
-/*const DEFAULT_LOCATION_DATA = {
+const DEFAULT_LOCATION_DATA = {
   latitude: 0,
   latitudeDMS: "0°0'0.0000\" N",
   longitude: 0,
@@ -20,7 +20,7 @@
 
 let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
 let locationIsLive = false;
-*/
+
 // ======================== دوال مساعدة ========================
 
 /**
@@ -350,6 +350,16 @@ function addLocationStyles() {
       100% { opacity: 0; visibility: hidden; }
     }
     
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
     .location-popup-overlay {
       position: fixed;
       top: 0;
@@ -365,16 +375,6 @@ function addLocationStyles() {
       font-family: 'Cairo', sans-serif;
       direction: rtl;
       animation: fadeIn 0.2s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
     }
     
     .location-popup-card {
@@ -578,13 +578,13 @@ async function initGPSLocation(options = {}) {
   // إضافة الأنماط
   addLocationStyles();
   
-  // ربط زر الموقع
-  const locationBtn = document.getElementById('locationBtn');
+  // ربط زر الموقع - باستخدام id الموجود في ملفك
+  const locationBtn = document.getElementById('locationFooterBtn');
   if (locationBtn) {
     locationBtn.addEventListener('click', showLocationPopup);
     console.log('✅ تم ربط زر الموقع');
   } else {
-    console.warn('⚠️ لم يتم العثور على زر الموقع (id="locationBtn")');
+    console.warn('⚠️ لم يتم العثور على زر الموقع (id="locationFooterBtn")');
   }
   
   // الحصول على الموقع تلقائياً إذا طلب ذلك
