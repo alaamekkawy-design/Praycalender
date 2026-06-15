@@ -1208,7 +1208,7 @@
     
     <!-- التذييل مع أزرار الموقع والحفظ -->
     <div class="footer">
-      <span onclick="location.reload();" style="cursor:pointer;" title="ريفرش">Mekkawy</span>
+      <span onclick="location.reload();" style="cursor:pointer; font-family:'Sacramento', cursive; font-size:24px; font-weight:normal;" title="ريفرش">by mekkawy</span>
       <button class="icon-btn" id="saveImageBtn" title="حفظ كصورة">📸</button>
       <button class="icon-btn" id="locationFooterBtn" title="الموقع">📍</button>
     </div>
@@ -1240,7 +1240,7 @@
   
   <div id="pv-prayer-table" style="width:100%;"></div>
   <div id="pv-zodiac" style="text-align:center;font-size:10px;color:#4a6a9b;margin-top:8px;padding:6px;background:#f4f7fc;border-radius:6px;display:none;"></div>
-  <div style="text-align:center; font-family:'Sacramento', cursive; font-size:18px; font-weight:normal; color:#1a3a6b; margin-top:10px; padding-top:10px; border-top:1px solid #c5cfe0;">
+  <div style="text-align:center; font-family:'Sacramento', cursive; font-size:24px; font-weight:normal; color:#1a3a6b; margin-top:10px; padding-top:10px; border-top:1px solid #c5cfe0;">
     <span>by mekkawy</span>
   </div>
 </div>
@@ -1577,15 +1577,55 @@ async function fetchHijriDate(date) {
   } catch(e){ return null; } 
 }
 
-async function fetchPrayerTimesRaw(date,city){ 
-  const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
-  const url=`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&midnightMode=1&timezonestring=Africa/Cairo`; 
-  try{ 
-    const resp=await fetch(url); 
-    const data=await resp.json(); 
-    if(data.code===200&&data.data) return data.data; 
+// ======================== دوال API مع التخزين المؤقت لمدة 30 يوم ========================
+// دالة لحفظ البيانات في localStorage مع مدة صلاحية 30 يوم
+function setCachedData(key, data) {
+  const cacheData = {
+    data: data,
+    expiry: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 يوم
+  };
+  localStorage.setItem(key, JSON.stringify(cacheData));
+}
+
+// دالة لاسترجاع البيانات من localStorage
+function getCachedData(key) {
+  const cached = localStorage.getItem(key);
+  if (!cached) return null;
+  
+  const cacheData = JSON.parse(cached);
+  if (Date.now() > cacheData.expiry) {
+    localStorage.removeItem(key);
+    return null;
+  }
+  return cacheData.data;
+}
+
+async function fetchPrayerTimesRaw(date, city) { 
+  const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate(); 
+  const cacheKey = `prayerTimes_${city.name}_${y}_${m}_${d}`;
+  
+  // محاولة استرجاع البيانات من التخزين المؤقت
+  const cachedData = getCachedData(cacheKey);
+  if (cachedData) {
+    console.log(`✅ استخدام بيانات مخزنة لمدينة ${city.name} وتاريخ ${d}/${m}/${y}`);
+    return cachedData;
+  }
+  
+  console.log(`🌍 جلب بيانات جديدة من API لمدينة ${city.name} وتاريخ ${d}/${m}/${y}`);
+  const url = `https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&midnightMode=1&timezonestring=Africa/Cairo`; 
+  try { 
+    const resp = await fetch(url); 
+    const data = await resp.json(); 
+    if (data.code === 200 && data.data) {
+      // حفظ البيانات في التخزين المؤقت
+      setCachedData(cacheKey, data.data);
+      return data.data; 
+    } 
     return null; 
-  } catch(e){ return null; } 
+  } catch(e) { 
+    console.error('خطأ في جلب البيانات:', e);
+    return null; 
+  } 
 }
 
 // ======================== نافذة اختيار المدينة ========================
@@ -1688,7 +1728,7 @@ async function updatePrayerDisplay() {
     }
   }
 }
-// ======================== الطقس ========================
+
 async function refreshWidget(targetDate) {
   if (isLoading) return;
   isLoading = true;
@@ -1876,7 +1916,10 @@ async function saveAsImage(withZodiac) {
   
   // التاريخ الميلادي - منفصل
   document.getElementById('pv-gregDay').textContent = toAr(date.getDate());
-  document.getElementById('pv-gregMonth').textContent = AR_MONTHS_G[date.getMonth()];
+  //document.getElementById('pv-gregMonth').textContent = AR_MONTHS_G[date.getMonth()];
+  document.getElementById('pv-gregMonth').innerHTML = `${AR_MONTHS_G[date.getMonth()]} 
+  <span style="font-family:'Amiri',serif; font-size:16px; font-weight:600; opacity:0.75;">
+  (${SYRIAC_MONTHS[date.getMonth()]})</span>`;
   document.getElementById('pv-gregYear').textContent = toAr(date.getFullYear());
   document.getElementById('pv-greg').textContent =  `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()} `;  
  
@@ -2185,6 +2228,7 @@ setInterval(() => {
 }, 600000);
 
 // PWA
+
 document.addEventListener('DOMContentLoaded', function() {
     if (window.PWAInstall) {
         window.PWAInstall.init({
