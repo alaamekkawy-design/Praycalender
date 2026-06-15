@@ -1196,7 +1196,7 @@
           <th>عصر</th>
           <th>مغرب</th>
           <th>عشاء</th>
-        </tr>
+        </td>
       </thead>
       <tbody id="prayerBody"></tbody>
     </table>
@@ -1246,165 +1246,6 @@
 </div>
 
 <script>
-// ======================== بيانات الموقع ========================
-const DEFAULT_LOCATION_DATA = {
-  latitude: 0,
-  latitudeDMS: "0°0'0.0000\" N",
-  longitude: 0,
-  longitudeDMS: "0°0'0.0000\" E",
-  address: "------"
-};
-
-let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
-let locationIsLive = false;
-
-function toDMS(value, isLat) {
-  const abs = Math.abs(value);
-  let deg = Math.floor(abs);
-  let minFloat = (abs - deg) * 60;
-  let min = Math.floor(minFloat);
-  let sec = (minFloat - min) * 60;
-  if (sec >= 59.99995) {
-    sec = 0;
-    min++;
-    if (min >= 60) {
-      min = 0;
-      deg++;
-    }
-  }
-  const dir = isLat ? (value >= 0 ? 'N' : 'S') : (value >= 0 ? 'E' : 'W');
-  return `${deg}°${min}'${sec.toFixed(4)}" ${dir}`;
-}
-
-function getCurrentLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('المتصفح لا يدعم تحديد الموقع'));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve(pos.coords),
-      (err) => reject(err),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  });
-}
-
-async function reverseGeocode(lat, lng) {
-  try {
-    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
-      headers: { 'Accept-Language': 'ar' }
-    });
-    const data = await resp.json();
-    if (data && data.display_name) return data.display_name;
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
-
-function getGoogleMapsLink() {
-  if (!locationIsLive) return '#';
-  return `https://www.google.com/maps?q=${LOCATION_DATA.latitude},${LOCATION_DATA.longitude}`;
-}
-
-function showLocationPopup() {
-  const existing = document.querySelector('.location-popup-overlay');
-  if (existing) existing.remove();
-
-  const overlay = document.createElement('div');
-  overlay.className = 'location-popup-overlay';
-
-  const card = document.createElement('div');
-  card.className = 'location-popup-card';
-
-  function renderCard() {
-    card.innerHTML = `
-      <div class="popup-header">
-        <h3>📍 موقعي الحالي</h3>
-        <button class="close-popup" id="closeLocationPopup">✕</button>
-      </div>
-      <div class="popup-content">
-        <div class="info-row">
-          <div class="info-label">العنوان التفصيلي ${locationIsLive ? '(GPS)' : '(افتراضي)'}</div>
-          <div class="info-value" id="popupAddress">${escapeHtml(LOCATION_DATA.address)}</div>
-        </div>
-        <div class="coord-row">
-          <div class="coord-box">
-            <div class="coord-label">خط العرض</div>
-            <div class="coord-value" id="popupLat">${LOCATION_DATA.latitude}°</div>
-            <div class="coord-value" style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.latitudeDMS}</div>
-          </div>
-          <div class="coord-box">
-            <div class="coord-label">خط الطول</div>
-            <div class="coord-value" id="popupLng">${LOCATION_DATA.longitude}°</div>
-            <div class="coord-value" style="font-size:11px; direction:ltr; margin-top:4px;">${LOCATION_DATA.longitudeDMS}</div>
-          </div>
-        </div>
-        <a href="${getGoogleMapsLink()}" target="_blank" class="google-link" ${locationIsLive ? '' : 'style="opacity:0.5;pointer-events:none;"'}>
-          🗺️ فتح في خرائط جوجل
-        </a>
-        <div class="action-buttons">
-          <button class="action-btn" id="copyAddressBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📋 نسخ العنوان</button>
-          <button class="action-btn" id="copyCoordsBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📍 نسخ الإحداثيات</button>
-          <button class="action-btn" id="shareLocationBtn" ${locationIsLive ? '' : 'disabled style="opacity:0.5;"'}>📤 مشاركة الموقع</button>
-        </div>
-        <button class="action-btn" id="refreshLocationBtn" style="margin-top:0;">🔄 تحديث الموقع من GPS</button>
-      </div>
-    `;
-    attachCardEvents();
-  }
-
-  function attachCardEvents() {
-    document.getElementById('closeLocationPopup')?.addEventListener('click', () => overlay.remove());
-    document.getElementById('copyAddressBtn')?.addEventListener('click', async () => await copyToClipboard(LOCATION_DATA.address, "تم نسخ العنوان ✅"));
-    document.getElementById('copyCoordsBtn')?.addEventListener('click', async () => await copyToClipboard(`${LOCATION_DATA.latitude}, ${LOCATION_DATA.longitude}`, "تم نسخ الإحداثيات 📍"));
-    document.getElementById('shareLocationBtn')?.addEventListener('click', async () => {
-      const shareData = { title: 'موقعي', text: LOCATION_DATA.address, url: getGoogleMapsLink() };
-      if (navigator.share) try { await navigator.share(shareData); } catch(e) {}
-      else await copyToClipboard(getGoogleMapsLink(), "رابط الموقع منسوخ");
-    });
-    document.getElementById('refreshLocationBtn')?.addEventListener('click', () => fetchLiveLocation());
-  }
-
-  async function fetchLiveLocation() {
-    const btn = document.getElementById('refreshLocationBtn');
-    if (btn) { btn.disabled = true; btn.innerText = '⏳ جارٍ تحديد الموقع...'; }
-    try {
-      const coords = await getCurrentLocation();
-      const lat = coords.latitude, lng = coords.longitude;
-      const address = await reverseGeocode(lat, lng);
-      LOCATION_DATA = {
-        latitude: Math.round(lat * 100000) / 100000,
-        longitude: Math.round(lng * 100000) / 100000,
-        latitudeDMS: toDMS(lat, true),
-        longitudeDMS: toDMS(lng, false),
-        address: address || DEFAULT_LOCATION_DATA.address
-      };
-      locationIsLive = true;
-      renderCard();
-      showToast('تم تحديث الموقع ✅');
-    } catch (e) { showToast('تعذر تحديد الموقع'); }
-  }
-
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-  renderCard();
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-  fetchLiveLocation();
-}
-
-async function copyToClipboard(text, successMsg) {
-  try { await navigator.clipboard.writeText(text); showToast(successMsg); } 
-  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(successMsg); }
-}
-function showToast(msg) {
-  const existing = document.querySelector('.copy-success'); if(existing) existing.remove();
-  const toast = document.createElement('div'); toast.className = 'copy-success'; toast.innerText = msg; document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2000);
-}
-function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-
 // ======================== بيانات التطبيق الأساسية ========================
 const CITIES = [
   { name: 'القاهرة', lat: 30.0444, lng: 31.2357 },
@@ -1563,6 +1404,7 @@ function updateCountdown() {
   } 
   if(diffSec>60&&alertedFor===next.key) alertedFor=null; 
 }
+
 // ======================== دوال API ========================
 async function fetchHijriDate(date) { 
   const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
@@ -1578,16 +1420,14 @@ async function fetchHijriDate(date) {
 }
 
 // ======================== دوال API مع التخزين المؤقت لمدة 30 يوم ========================
-// دالة لحفظ البيانات في localStorage مع مدة صلاحية 30 يوم
 function setCachedData(key, data) {
   const cacheData = {
     data: data,
-    expiry: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 يوم
+    expiry: Date.now() + (30 * 24 * 60 * 60 * 1000)
   };
   localStorage.setItem(key, JSON.stringify(cacheData));
 }
 
-// دالة لاسترجاع البيانات من localStorage
 function getCachedData(key) {
   const cached = localStorage.getItem(key);
   if (!cached) return null;
@@ -1604,7 +1444,6 @@ async function fetchPrayerTimesRaw(date, city) {
   const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate(); 
   const cacheKey = `prayerTimes_${city.name}_${y}_${m}_${d}`;
   
-  // محاولة استرجاع البيانات من التخزين المؤقت
   const cachedData = getCachedData(cacheKey);
   if (cachedData) {
     console.log(`✅ استخدام بيانات مخزنة لمدينة ${city.name} وتاريخ ${d}/${m}/${y}`);
@@ -1617,7 +1456,6 @@ async function fetchPrayerTimesRaw(date, city) {
     const resp = await fetch(url); 
     const data = await resp.json(); 
     if (data.code === 200 && data.data) {
-      // حفظ البيانات في التخزين المؤقت
       setCachedData(cacheKey, data.data);
       return data.data; 
     } 
@@ -1662,6 +1500,7 @@ function showCitySelectionPopup() {
   document.body.appendChild(overlay);
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 }
+
 // ======================== دوال العرض ========================
 function updateGregorianDisplay(date){ 
   document.getElementById('dayAr').innerText=AR_DAYS[date.getDay()]; 
@@ -1682,7 +1521,6 @@ function updateHijriDisplay(hijri){
   } 
 }
 
-// دالة عرض جدول مدينة واحدة فقط (أفقي في سطر واحد)
 async function updatePrayerDisplay() {
   const date = getViewDate();
   const city = CITIES[currentCity];
@@ -1691,7 +1529,6 @@ async function updatePrayerDisplay() {
   
   const row = tbody.insertRow();
   
-  // خلية اسم المدينة - قابلة للنقر
   const cityCell = row.insertCell(0);
   cityCell.innerText = city.name;
   cityCell.style.cursor = 'pointer';
@@ -1719,7 +1556,6 @@ async function updatePrayerDisplay() {
     row.insertCell(6).innerHTML = '<span>--:--</span>';
   }
   
-  // تنسيق الخلايا
   for (let i = 0; i <= 6; i++) {
     if (row.cells[i]) {
       row.cells[i].style.padding = '2% 1%';
@@ -1910,24 +1746,19 @@ async function saveAsImage(withZodiac) {
   const date = getViewDate();
   const pv = document.getElementById('printView');
   
-  // تعبئة بيانات التاريخ
   document.getElementById('pv-dayAr').textContent = AR_DAYS[date.getDay()];
   document.getElementById('pv-dayEn').textContent = EN_DAYS[date.getDay()];
   
-  // التاريخ الميلادي - منفصل
   document.getElementById('pv-gregDay').textContent = toAr(date.getDate());
-  //document.getElementById('pv-gregMonth').textContent = AR_MONTHS_G[date.getMonth()];
   document.getElementById('pv-gregMonth').innerHTML = `${AR_MONTHS_G[date.getMonth()]} 
   <span style="font-family:'Amiri',serif; font-size:16px; font-weight:600; opacity:0.75;">
   (${SYRIAC_MONTHS[date.getMonth()]})</span>`;
   document.getElementById('pv-gregYear').textContent = toAr(date.getFullYear());
   document.getElementById('pv-greg').textContent =  `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()} `;  
  
-  // التاريخ القبطي
   const cop = toCoptic(date);
   document.getElementById('pv-coptic').textContent = `${toAr(cop.day)} ${COPTIC_MONTHS[cop.month % 13]} ${toAr(cop.year)}`;
   
-  // التاريخ الهجري
   const hijri = await fetchHijriDate(date);
   if (hijri) {
     document.getElementById('pv-hijriDay').textContent = toAr(hijri.day);
@@ -1935,7 +1766,6 @@ async function saveAsImage(withZodiac) {
     document.getElementById('pv-hijriYear').textContent = toAr(hijri.year);
   }
   
-  // جدول المواقيت - جميع المدن (لأن الصورة تظهر كل المدن)
   const tableDiv = document.getElementById('pv-prayer-table');
   
   let tableHtml = `
@@ -1954,7 +1784,6 @@ async function saveAsImage(withZodiac) {
       <tbody>
   `;
   
-  // إضافة جميع المدن الأربعة للصورة
   for (let i = 0; i < CITIES.length; i++) {
     const cityData = CITIES[i];
     const cityRaw = await fetchPrayerTimesRaw(date, cityData);
@@ -1977,7 +1806,6 @@ async function saveAsImage(withZodiac) {
   tableHtml += `</tbody></table>`;
   tableDiv.innerHTML = tableHtml;
   
-  // معلومات البرج
   const zodiacDiv = document.getElementById('pv-zodiac');
   if (withZodiac) {
     const zodiac = getZodiacInfo(date);
@@ -2008,7 +1836,6 @@ async function saveAsImage(withZodiac) {
   }
 }
 
-// دالة بسيطة للأبراج
 function getZodiacInfo(date) {
   const month = date.getMonth() + 1;
   const day = date.getDate();
@@ -2211,7 +2038,13 @@ function startCountdownTimer(){
 }
 
 // ربط الأحداث
-document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
+document.getElementById('locationFooterBtn').addEventListener('click', () => {
+  if (typeof showLocationPopup === 'function') {
+    showLocationPopup();
+  } else {
+    console.log('الرجاء الانتظار، يتم تحميل نظام الموقع...');
+  }
+});
 document.getElementById('saveImageBtn').addEventListener('click', showSaveDialog);
 document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
 
@@ -2228,7 +2061,6 @@ setInterval(() => {
 }, 600000);
 
 // PWA
-
 document.addEventListener('DOMContentLoaded', function() {
     if (window.PWAInstall) {
         window.PWAInstall.init({
@@ -2246,6 +2078,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// تهيئة نظام GPS من location.js
+if (typeof initGPSLocation === 'function') {
+    initGPSLocation({ autoGetLocation: false });
+}
 </script>
 </body>
 </html>
