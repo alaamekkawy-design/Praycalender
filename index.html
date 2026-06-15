@@ -1208,7 +1208,8 @@
     
     <!-- التذييل مع أزرار الموقع والحفظ -->
     <div class="footer">
-      <span onclick="location.reload();" style="cursor:pointer; font-family:'Sacramento', cursive; font-size:24px; font-weight:normal;" title="ريفرش">by mekkawy</span>
+     <button class="icon-btn" id="shareWebsiteBtn" title="مشاركة الرابط">🔗</button>
+	  <span onclick="location.reload();" style="cursor:pointer; font-family:'Sacramento', cursive; font-size:24px; font-weight:normal;" title="ريفرش">by mekkawy</span>
       <button class="icon-btn" id="saveImageBtn" title="حفظ كصورة">📸</button>
       <button class="icon-btn" id="locationFooterBtn" title="الموقع">📍</button>
     </div>
@@ -2214,6 +2215,47 @@ function startCountdownTimer(){
 document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
 document.getElementById('saveImageBtn').addEventListener('click', showSaveDialog);
 document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
+
+// دالة مشاركة رابط الموقع
+async function shareWebsiteLink() {
+    const websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
+    const shareTitle = 'التقويم الإسلامي - مواقيت الصلاة';
+    const shareText = 'تطبيق رائع لمواقيت الصلاة والتقويم الهجري والميلادي';
+
+    // التحقق مما إذا كان المتصفح يدعم Web Share API
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: shareTitle,
+                text: shareText,
+                url: websiteUrl
+            });
+            console.log('تمت المشاركة بنجاح');
+        } catch (error) {
+            console.error('خطأ في المشاركة:', error);
+            // إذا ألغى المستخدم المشاركة، لا نفعل شيئًا
+            if (error.name !== 'AbortError') {
+                fallbackCopyLink();
+            }
+        }
+    } else {
+        // للمتصفحات التي لا تدعم Web Share API (مثل سطح المكتب)
+        fallbackCopyLink();
+    }
+}
+
+// دالة بديلة لنسخ الرابط عندما لا يدعم المتصفح المشاركة
+function fallbackCopyLink() {
+    const websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
+    navigator.clipboard.writeText(websiteUrl).then(() => {
+        showToastMessage('تم نسخ رابط الموقع 📋');
+    }).catch(() => {
+        alert('يمكنك نسخ الرابط يدويًا: ' + websiteUrl);
+    });
+}
+
+// ربط الزر بوظيفة المشاركة
+document.getElementById('shareWebsiteBtn').addEventListener('click', shareWebsiteLink);
 
 // التهيئة
 buildCityBar();
