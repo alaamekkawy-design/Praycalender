@@ -10,7 +10,7 @@
 
 // ======================== البيانات الأساسية ========================
 
-const DEFAULT_LOCATION_DATA = {
+/*const DEFAULT_LOCATION_DATA = {
   latitude: 0,
   latitudeDMS: "0°0'0.0000\" N",
   longitude: 0,
@@ -20,7 +20,7 @@ const DEFAULT_LOCATION_DATA = {
 
 let LOCATION_DATA = { ...DEFAULT_LOCATION_DATA };
 let locationIsLive = false;
-
+*/
 // ======================== دوال مساعدة ========================
 
 /**
