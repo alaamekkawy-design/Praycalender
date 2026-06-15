@@ -2078,7 +2078,78 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+// ======================== دوال الموقع المدمجة (لضمان العمل على Android) ========================
 
+// دالة طلب إذن الموقع
+function requestLocationPermission() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log("✅ تم الحصول على الموقع:", position.coords);
+        showToastMessage("تم تحديد موقعك بنجاح");
+      },
+      (error) => {
+        console.error("❌ خطأ في تحديد الموقع:", error);
+        if (error.code === 1) {
+          showToastMessage("الرجاء السماح بتحديد الموقع");
+        }
+      }
+    );
+  } else {
+    showToastMessage("المتصفح لا يدعم تحديد الموقع");
+  }
+}
+
+// دالة عرض رسالة مؤقتة
+function showToastMessage(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'copy-success';
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+// دالة مبسطة لفتح نافذة الموقع
+function showLocationPopup() {
+  // طلب الإذن أولاً
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const googleLink = `https://www.google.com/maps?q=${lat},${lng}`;
+        
+        // عرض نافذة منبثقة بسيطة
+        alert(`موقعك الحالي:\nخط العرض: ${lat}\nخط الطول: ${lng}\n\nيمكنك فتح خرائط جوجل للتفاصيل`);
+        
+        // فتح خرائط جوجل
+        window.open(googleLink, '_blank');
+      },
+      (error) => {
+        console.error("خطأ:", error);
+        if (error.code === 1) {
+          alert("الرجاء السماح بتحديد الموقع من إعدادات المتصفح");
+        } else {
+          alert("تعذر تحديد موقعك، يرجى المحاولة لاحقاً");
+        }
+      }
+    );
+  } else {
+    alert("المتصفح لا يدعم تحديد الموقع");
+  }
+}
+
+// ربط زر الموقع (تأكد من وجود الزر)
+document.addEventListener('DOMContentLoaded', function() {
+  const locationBtn = document.getElementById('locationFooterBtn');
+  if (locationBtn) {
+    // إزالة المستمع القديم وإضافة مستمع جديد
+    const newBtn = locationBtn.cloneNode(true);
+    locationBtn.parentNode.replaceChild(newBtn, locationBtn);
+    newBtn.addEventListener('click', showLocationPopup);
+    console.log("✅ تم ربط زر الموقع");
+  }
+});
 // تهيئة نظام GPS من location.js
 if (typeof initGPSLocation === 'function') {
     initGPSLocation({ autoGetLocation: false });
