@@ -424,7 +424,40 @@
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
   
-  .widget, body, .day-name-ar, .day-name-en, .date-num, .date-month-ar, .date-year, .gregorian-line, .prayer-table th, .prayer-table td, .footer, .next-prayer-box, .weather-box { transition: background 0.5s, color 0.3s, border-color 0.3s; }
+ 
+ .widget, body, .day-name-ar, .day-name-en, .date-num, .date-month-ar, .date-year, .gregorian-line, .prayer-table th, .prayer-table td, .footer, .next-prayer-box, .weather-box { transition: background 0.5s, color 0.3s, border-color 0.3s; }
+/* زر العودة إلى اليوم */
+.back-to-today-btn {
+    background: #f0c040;
+    color: #1a3a6b;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Cairo', sans-serif;
+    white-space: nowrap;
+}
+
+.back-to-today-btn:hover {
+    transform: translateY(-2px);
+    background: #e5b830;
+}
+
+.back-to-today-btn:active {
+    transform: scale(0.95);
+}
+
+body.dark-mode .back-to-today-btn {
+    background: #2a5298;
+    color: #ffecb3;
+}
+
+body.dark-mode .back-to-today-btn:hover {
+    background: #1a3a6b;
+}
 </style>
 
 </head>
@@ -455,6 +488,7 @@
     </div>
   </div>
   <div class="gregorian-line clickable-date" id="gregLine">
+    <button id="backToTodayBtn" class="back-to-today-btn" style="display: none;" title="العودة إلى اليوم">📅 اليوم</button>
     <span class="badge" id="gregLineFull">...</span>
     <span id="copticSpan" class="coptic">...</span>
   </div>
@@ -1048,9 +1082,11 @@ async function updatePrayerDisplay() {
 }
 
 async function refreshWidget(targetDate) {
+ 
   if (isLoading) return;
   isLoading = true;
   var date = targetDate || currentDisplayDate;
+  updateBackToTodayButton();
   updateGregorianDisplay(date);
   try {
     var hijri = await fetchHijriDate(date);
@@ -1216,7 +1252,13 @@ function renderPicker() {
   for (var d = 1; d <= daysInMonth; d++) grid.push(new Date(y, m, d)); 
   while (grid.length % 7 !== 0) grid.push(null); 
   var weekdays = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']; 
-  overlay.innerHTML = '<div class="datepicker-modal"><div class="year-month-control"><button id="prevYear">««</button><button id="prevMonth">‹</button><span id="monthYear">' + AR_MONTHS_G[m] + ' ' + toAr(y) + '</span><button id="nextMonth">›</button><button id="nextYear">»»</button></div><div class="picker-grid" id="pickerGrid"></div><div class="picker-actions"><button id="todayBtn">📅 اليوم</button><button id="saveFromPickerBtn" class="outline">📸 حفظ كصورة</button><button id="closePickerBtn" class="outline">إلغاء</button></div></div>'; 
+  overlay.innerHTML = '<div class="datepicker-modal">
+   <div class="year-month-control">
+   <button id="prevYear">««</button><button id="prevMonth">‹</button>
+   <span id="monthYear">' + AR_MONTHS_G[m] + ' ' + toAr(y) + '</span><button id="nextMonth">›</button>
+   <button id="nextYear">»»</button></div><div class="picker-grid" id="pickerGrid"></div>
+   <div class="picker-actions"><button id="todayBtn">📅 اليوم</button>
+   <button id="saveFromPickerBtn" class="outline">📸 حفظ كصورة</button><button id="closePickerBtn" class="outline">إلغاء</button></div></div>'; 
   document.body.appendChild(overlay); 
   pickerModal = overlay; 
   overlay.classList.add('open');
@@ -1237,9 +1279,10 @@ function renderPicker() {
         div.innerText = toAr(dt.getDate()); 
         if (dt.toDateString() === currentDisplayDate.toDateString()) div.classList.add('selected'); 
         div.onclick = async function() { 
-          currentDisplayDate = new Date(dt); 
-          await refreshWidget(currentDisplayDate); 
-          closePicker(); 
+         currentDisplayDate = new Date(dt); 
+         updateBackToTodayButton();  // أضف هذا السطر
+        await refreshWidget(currentDisplayDate); 
+        closePicker(); 
         }; 
       } 
       container.appendChild(div); 
@@ -1261,9 +1304,10 @@ function renderPicker() {
   document.getElementById('nextMonth').onclick = function() { activePickerDate.setMonth(activePickerDate.getMonth() + 1); updateGrid(); }; 
   document.getElementById('prevYear').onclick = function() { activePickerDate.setFullYear(activePickerDate.getFullYear() - 1); updateGrid(); }; 
   document.getElementById('nextYear').onclick = function() { activePickerDate.setFullYear(activePickerDate.getFullYear() + 1); updateGrid(); }; 
-  document.getElementById('todayBtn').onclick = async function() { currentDisplayDate = new Date(); await refreshWidget(currentDisplayDate); closePicker(); }; 
+  document.getElementById('todayBtn').onclick = async function() { currentDisplayDate = new Date();updateBackToTodayButton(); await refreshWidget(currentDisplayDate); closePicker(); }; 
   document.getElementById('closePickerBtn').onclick = closePicker;
   document.getElementById('saveFromPickerBtn').onclick = function() { closePicker(); showSaveDialog(); };
+ document.getElementById('backToTodayBtn').addEventListener('click', goBackToToday);
   overlay.onclick = function(e) { if (e.target === overlay) closePicker(); }; 
   buildGrid(); 
 }
