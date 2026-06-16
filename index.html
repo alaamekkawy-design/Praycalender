@@ -814,24 +814,43 @@ async function playAlert(prayerName) {
   } 
 }
 
+// متغير لتخزين صوت الاختبار
+let testAudio = null;
+
 function testAzanSound() {
     unlockAudio();
     var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
+    
+    // إذا كان هناك صوت قيد التشغيل، أوقفه
+    if (testAudio) {
+        testAudio.pause();
+        testAudio.currentTime = 0;
+        testAudio = null;
+        // تغيير نص الزر إلى "🔊 اختبار الأذان"
+        const testBtn = document.getElementById('testAzanSettingsBtn');
+        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
+        return;
     }
-    var audio = new Audio();
-    audio.volume = 1.0;
-    audio.src = selectedUrl;
-    currentAudio = audio;
-    audio.play().catch(function(e) { console.error('خطأ في تشغيل اختبار الصوت:', e); });
-    setTimeout(function() {
-        if (currentAudio) {
-            currentAudio.pause();
-            currentAudio = null;
-        }
-    }, 5000);
+    
+    testAudio = new Audio();
+    testAudio.volume = 1.0;
+    testAudio.src = selectedUrl;
+    testAudio.play().catch(function(e) { console.error('خطأ:', e); });
+    
+    // تغيير نص الزر إلى "⏹ إيقاف"
+    const testBtn = document.getElementById('testAzanSettingsBtn');
+    if (testBtn) testBtn.innerHTML = '⏹ إيقاف';
+    
+    testAudio.addEventListener('ended', function() {
+        testAudio = null;
+        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
+    });
+    
+    testAudio.addEventListener('error', function() {
+        testAudio = null;
+        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
+        showToast('حدث خطأ في تشغيل الصوت');
+    });
 }
 
 function updateCountdown() { 
@@ -952,6 +971,12 @@ function showCitySelectionPopup() {
     option.textContent = city.name;
     option.onclick = async function() {
       currentCity = index;
+      // تحديث شريط المدن أولاً
+      var btns = document.querySelectorAll('.city-btn');
+      for (var j = 0; j < btns.length; j++) {
+        btns[j].classList.remove('active');
+        if (j === index) btns[j].classList.add('active');
+      }
       await refreshWidget(currentDisplayDate);
       overlay.remove();
     };
