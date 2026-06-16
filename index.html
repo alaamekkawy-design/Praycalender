@@ -193,27 +193,9 @@
   
   .widget, body, .day-name-ar, .day-name-en, .date-num, .date-month-ar, .date-year, .gregorian-line, .prayer-table th, .prayer-table td, .footer, .next-prayer-box, .weather-box { transition: background 0.5s, color 0.3s, border-color 0.3s; }
   
-  /* ========== أنماط اختيار المدينة في الإعدادات ========== */
-  .city-select-section {
-    margin-bottom: 20px;
-  }
-  .city-select {
-    width: 100%;
-    padding: 10px 15px;
-    border-radius: 30px;
-    border: 1px solid #c5cfe0;
-    background: white;
-    font-family: 'Cairo', sans-serif;
-    font-size: 14px;
-    color: #1a3a6b;
-    cursor: pointer;
-    text-align: center;
-  }
-  body.dark-mode .city-select {
-    background: #0d1a2e;
-    border-color: #2a5298;
-    color: #cde1ff;
-  }
+  .city-select-section { margin-bottom: 20px; }
+  .city-select { width: 100%; padding: 10px 15px; border-radius: 30px; border: 1px solid #c5cfe0; background: white; font-family: 'Cairo', sans-serif; font-size: 14px; color: #1a3a6b; cursor: pointer; text-align: center; }
+  body.dark-mode .city-select { background: #0d1a2e; border-color: #2a5298; color: #cde1ff; }
 </style>
 
 </head>
@@ -262,7 +244,6 @@
   <div class="settings-card">
     <div class="settings-header"><h3>⚙️ الإعدادات</h3><button class="close-settings" id="closeSettingsBtn">✕</button></div>
     <div class="settings-content">
-      <!-- اختيار المدينة -->
       <div class="settings-section city-select-section">
         <div class="section-title">📍 المدينة المفضلة</div>
         <select id="citySelect" class="city-select">
@@ -309,7 +290,12 @@
             </select>
           </div>
         </div>
-        <div class="section-note">⚠️ الإشعارات تعمل على Android و HTTPS</div>
+        <button id="requestNotificationBtn" class="test-azan-btn" style="background: #f0c040; color: #1a3a6b; margin-top: 12px;">
+          🔔 طلب الإذن يدوياً
+        </button>
+        <div class="section-note" style="margin-top: 12px;">
+          ⚠️ إذا كانت الإشعارات لا تظهر، اضغط الزر أعلاه واختر "سماح"
+        </div>
       </div>
     </div>
     <div class="settings-footer"><button id="saveSettingsBtn" class="save-btn">💾 حفظ</button><button id="cancelSettingsBtn" class="cancel-btn">❌ إلغاء</button></div>
@@ -646,7 +632,7 @@ function sendNotification(title, body, tag) {
 function checkPrayerNotifications() {
     if (!notificationPermission || !notificationEnabled) return;
     if (!prayerData || !prayerData.timings) return;
-    if (!isToday()) return; // إشعارات فقط لليوم الحالي
+    if (!isToday()) return;
     
     const now = new Date();
     const curTotalSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -664,13 +650,11 @@ function checkPrayerNotifications() {
         var prayerSec = prayer.time * 60;
         var diffSec = prayerSec - curTotalSec;
         
-        // إشعار عند وقت الصلاة
         if (diffSec <= 0 && diffSec > -15 && lastNotifiedPrayer !== prayer.key) {
             lastNotifiedPrayer = prayer.key;
             sendNotification('🕌 حان وقت صلاة ' + prayer.name, 'الوقت الآن: ' + fmtTimeWithOffset(t[prayer.key], prayerOffsets[prayer.key]), prayer.key);
         }
         
-        // إشعار قبل الصلاة
         var beforeSec = notificationBeforeMinutes * 60;
         if (diffSec > 0 && diffSec <= beforeSec && diffSec > beforeSec - 30 && lastNotifiedPrayer !== prayer.key + '_before') {
             lastNotifiedPrayer = prayer.key + '_before';
@@ -688,7 +672,6 @@ function loadNotificationSettings() {
     if (cb) cb.checked = notificationEnabled;
     var select = document.getElementById('notificationMinutes');
     if (select) select.value = notificationBeforeMinutes;
-    // طلب الإذن عند التحميل
     requestNotificationPermission();
 }
 
@@ -708,6 +691,30 @@ function addNotificationSettings() {
         select.addEventListener('change', function(e) {
             notificationBeforeMinutes = parseInt(e.target.value);
             localStorage.setItem('notifications_minutes', notificationBeforeMinutes);
+        });
+    }
+    
+    var requestBtn = document.getElementById('requestNotificationBtn');
+    if (requestBtn) {
+        requestBtn.addEventListener('click', async function() {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                notificationPermission = true;
+                showToast('✅ تم تفعيل الإشعارات بنجاح');
+                try {
+                    new Notification('✅ الإشعارات مفعلة', { 
+                        body: 'ستصلك إشعارات أوقات الصلاة', 
+                        icon: './icons/icon-192x192.png' 
+                    });
+                } catch(e) {}
+            } else if (permission === 'denied') {
+                showToast('❌ الإشعارات محظورة. الرجاء تفعيلها من إعدادات المتصفح');
+                if (navigator.userAgent.toLowerCase().includes('android')) {
+                    showToast('افتح: إعدادات Chrome → الإشعارات → ابحث عن الموقع → سماح');
+                }
+            } else {
+                showToast('⚠️ لم يتم منح الإذن، حاول مرة أخرى');
+            }
         });
     }
 }
@@ -999,7 +1006,7 @@ async function saveAsImage(withZodiac) {
     document.getElementById('pv-hijriYear').textContent = toAr(hijri.year);
   }
   var tableDiv = document.getElementById('pv-prayer-table');
-  var tableHtml = '<style>.pv-table { width:100%; border-collapse:collapse; font-size:11px; direction:rtl; } .pv-table th, .pv-table td { padding:6px 3px; border:0.5px solid #c5cfe0; text-align:center; } .pv-table th { background:#f0f4fa; color:#1a3a6b; font-weight:700; } .pv-table td { color:#1a3a6b; }</style><table class="pv-table"><thead><tr><th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th></tr></thead><tbody>';
+  var tableHtml = '<style>.pv-table { width:100%; border-collapse:collapse; font-size:11px; direction:rtl; } .pv-table th, .pv-table td { padding:6px 3px; border:0.5px solid #c5cfe0; text-align:center; } .pv-table th { background:#f0f4fa; color:#1a3a6b; font-weight:700; } .pv-table td { color:#1a3a6b; }</style><table class="pv-table"><thead><tr><th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th></td></thead><tbody>';
   for (var i = 0; i < CITIES_LIST.length; i++) {
     var cityData = CITIES_LIST[i];
     var cityRaw = await fetchPrayerTimesRaw(date, cityData);
@@ -1016,7 +1023,7 @@ async function saveAsImage(withZodiac) {
     } else {
       for (var j = 0; j < 6; j++) tableHtml += '<td><span>--:--</span></td>';
     }
-    tableHtml += '<tr>';
+    tableHtml += '</tr>';
   }
   tableHtml += '</tbody></table>';
   tableDiv.innerHTML = tableHtml;
@@ -1177,7 +1184,6 @@ function checkAutoTheme(){
 var prayerOffsets = { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 };
 
 function loadSettings() {
-  // تحميل المدينة المحفوظة
   var savedCity = localStorage.getItem('selected_city');
   if (savedCity !== null) {
     var cityIndex = CITIES_LIST.findIndex(function(c) { return c.name === savedCity; });
@@ -1205,7 +1211,6 @@ function loadSettings() {
 }
 
 function saveSettings() {
-  // حفظ المدينة
   var citySelect = document.getElementById('citySelect');
   if (citySelect) {
     var selectedCityName = citySelect.value;
@@ -1232,7 +1237,6 @@ function updateOffsetDisplayAll() {
 }
 
 function setupSettingsEvents() {
-  // تغيير المدينة من القائمة المنسدلة
   var citySelect = document.getElementById('citySelect');
   if (citySelect) {
     citySelect.addEventListener('change', function() {
