@@ -335,7 +335,6 @@
     background: #2a5298;
   }
   
-  /* إزاحات الصلوات */
   .offsets-grid {
     display: flex;
     flex-direction: column;
@@ -441,6 +440,11 @@
   body.dark-mode .cancel-btn {
     border-color: #2a5298;
     color: #a8c8f0;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
   
   .clickable-date { cursor: pointer; transition: opacity 0.1s; }
@@ -555,7 +559,6 @@
     gap: 1%;
   }
   
-  /* جدول المواقيت */
   body.dark-mode .prayer-table tbody tr td:first-child {
     background-color: #0d1a2e !important;
     color: #cde1ff !important;
@@ -637,7 +640,6 @@
     background-color: rgba(42, 82, 152, 0.3);
   }
   
-  /* ========== الطقس ========== */
   .weather-box {
     background: linear-gradient(135deg, #1a3a6b 0%, #2a5298 100%);
     border-radius: 12px;
@@ -735,7 +737,6 @@
     background: linear-gradient(135deg, #0a1628, #1a3a6b);
   }
   
-  /* التذييل */
   .footer {
     text-align: center;
     font-family: 'Amiri', serif;
@@ -855,7 +856,6 @@
     font-size: 12px;
   }
   
-  /* نافذة حفظ الصورة المنبثقة */
   .save-dialog-overlay {
     position: fixed;
     top: 0;
@@ -934,7 +934,6 @@
     cursor: pointer;
   }
   
-  /* نافذة الموقع */
   .location-popup-overlay {
     position: fixed;
     top: 0;
@@ -1158,7 +1157,6 @@
     animation: fadeOut 2s forwards;
   }
   
-  /* نافذة منتقي التاريخ */
   .datepicker-overlay {
     position: fixed;
     top: 0;
@@ -1356,7 +1354,6 @@
     cursor: pointer;
   }
   
-  /* Print View - مخفي */
   #printView {
     display: none;
     position: fixed;
@@ -1372,10 +1369,6 @@
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { transform: translateY(40px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
   }
   @keyframes fadeOut {
     0% { opacity: 1; }
@@ -1396,13 +1389,11 @@
 <button id="pwaInstallBtn" style="display: none;">📱 تثبيت التطبيق</button>
 
 <div class="widget" id="widget">
-  <!-- الأزرار العلوية -->
   <div class="top-buttons">
     <button id="settingsBtn" title="الإعدادات">☰</button>
     <button id="darkToggle" title="تبديل الوضع الليلي">🌙</button>
   </div>
   
-  <!-- شريط المدن المصغر -->
   <div class="city-bar" id="cityBar"></div>
   
   <div class="day-name-ar clickable-date" id="dayAr">...</div>
@@ -1468,7 +1459,6 @@
   </div>
 </div>
 
-<!-- نافذة الإعدادات -->
 <div id="settingsOverlay" class="settings-overlay" style="display: none;">
   <div class="settings-card">
     <div class="settings-header">
@@ -1476,7 +1466,6 @@
       <button class="close-settings" id="closeSettingsBtn">✕</button>
     </div>
     <div class="settings-content">
-      <!-- وضع الشاشة -->
       <div class="settings-section">
         <div class="section-title">🌓 وضع الشاشة</div>
         <div class="theme-options">
@@ -1487,7 +1476,6 @@
         <div class="section-note">الأوتوماتيك: ليلي بعد المغرب حتى الفجر</div>
       </div>
       
-      <!-- الأذان -->
       <div class="settings-section">
         <div class="section-title">🔊 الأذان</div>
         <div class="azan-options">
@@ -1498,7 +1486,6 @@
         <button id="testAzanSettingsBtn" class="test-azan-btn">🔊 اختبار الأذان</button>
       </div>
       
-      <!-- ضبط مواقيت الصلاة -->
       <div class="settings-section">
         <div class="section-title">🕐 ضبط مواقيت الصلاة (± دقائق)</div>
         <div class="offsets-grid">
@@ -1566,7 +1553,6 @@
   </div>
 </div>
 
-<!-- Print View for Save as Image -->
 <div id="printView">
   <div id="pv-dayAr" style="text-align:center;font-family:'Amiri',serif;font-size:48px;font-weight:800;color:#1a3a6b;"></div>
   <div id="pv-dayEn" style="text-align:center;font-size:12px;font-weight:700;color:#1a3a6b;letter-spacing:3px;border:1.5px solid #1a3a6b;width:fit-content;padding:3px 20px;margin:5px auto 12px;"></div>
@@ -1749,13 +1735,11 @@ async function copyToClipboard(text, successMsg) {
   try { await navigator.clipboard.writeText(text); showToast(successMsg); } 
   catch { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(successMsg); }
 }
-
 function showToast(msg) {
   const existing = document.querySelector('.copy-success'); if(existing) existing.remove();
   const toast = document.createElement('div'); toast.className = 'copy-success'; toast.innerText = msg; document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 2000);
 }
-
 function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
 // ======================== بيانات التطبيق الأساسية ========================
@@ -1932,19 +1916,14 @@ async function fetchHijriDate(date) {
   } catch(e){ return null; } 
 }
 
-// ======================== دوال API مع التخزين المؤقت لمدة 30 يوم ========================
 function setCachedData(key, data) {
-  const cacheData = {
-    data: data,
-    expiry: Date.now() + (30 * 24 * 60 * 60 * 1000)
-  };
+  const cacheData = { data: data, expiry: Date.now() + (30 * 24 * 60 * 60 * 1000) };
   localStorage.setItem(key, JSON.stringify(cacheData));
 }
 
 function getCachedData(key) {
   const cached = localStorage.getItem(key);
   if (!cached) return null;
-  
   const cacheData = JSON.parse(cached);
   if (Date.now() > cacheData.expiry) {
     localStorage.removeItem(key);
@@ -1979,7 +1958,6 @@ async function fetchPrayerTimesRaw(date, city) {
   } 
 }
 
-// ======================== نافذة اختيار المدينة ========================
 function showCitySelectionPopup() {
   const existing = document.querySelector('.city-popup-overlay');
   if (existing) existing.remove();
@@ -2014,7 +1992,6 @@ function showCitySelectionPopup() {
   overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 }
 
-// ======================== دوال العرض ========================
 function updateGregorianDisplay(date){ 
   document.getElementById('dayAr').innerText=AR_DAYS[date.getDay()]; 
   document.getElementById('dayEn').innerText=EN_DAYS[date.getDay()]; 
@@ -2034,7 +2011,6 @@ function updateHijriDisplay(hijri){
   } 
 }
 
-// دالة عرض جدول مدينة واحدة فقط (أفقي في سطر واحد)
 async function updatePrayerDisplay() {
   const date = getViewDate();
   const city = CITIES[currentCity];
@@ -2094,7 +2070,6 @@ async function refreshWidget(targetDate) {
   isLoading = false;
 }
 
-// ======================== الطقس ========================
 const WEATHER_KEY = '819c643e98f045faadd50730260106';
 
 function getWindDirectionShort(deg) {
@@ -2221,7 +2196,6 @@ async function loadWeather() {
   }
 }
 
-// ======================== نافذة حفظ الصورة ========================
 function showSaveDialog() {
   const existing = document.querySelector('.save-dialog-overlay');
   if (existing) existing.remove();
@@ -2264,9 +2238,7 @@ async function saveAsImage(withZodiac) {
   document.getElementById('pv-dayEn').textContent = EN_DAYS[date.getDay()];
   
   document.getElementById('pv-gregDay').textContent = toAr(date.getDate());
-  document.getElementById('pv-gregMonth').innerHTML = `${AR_MONTHS_G[date.getMonth()]} 
-  <span style="font-family:'Amiri',serif; font-size:16px; font-weight:600; opacity:0.75;">
-  (${SYRIAC_MONTHS[date.getMonth()]})</span>`;
+  document.getElementById('pv-gregMonth').innerHTML = `${AR_MONTHS_G[date.getMonth()]} <span style="font-family:'Amiri',serif; font-size:16px; font-weight:600; opacity:0.75;">(${SYRIAC_MONTHS[date.getMonth()]})</span>`;
   document.getElementById('pv-gregYear').textContent = toAr(date.getFullYear());
   document.getElementById('pv-greg').textContent = `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()} `;  
  
@@ -2368,7 +2340,6 @@ function getZodiacInfo(date) {
   return { name: 'الحوت', element: 'مائي', planet: 'نبتون' };
 }
 
-// ======================== منتقي التاريخ ========================
 function openDatePicker() { 
   activePickerDate = new Date(currentDisplayDate); 
   renderPicker(); 
@@ -2495,7 +2466,6 @@ function attachEvents(){
   if (gregLine) gregLine.addEventListener('click', openDatePicker);
 }
 
-// ======================== الوضع الليلي ========================
 function isDarkTime(){ 
   if(!prayerData||!prayerData.timings){ 
     const h=new Date().getHours(); 
@@ -2527,13 +2497,11 @@ function checkAutoTheme(){
   applyDarkMode(isDarkTime()); 
 }
 
-// ======================== دوال الإعدادات ========================
 let prayerOffsets = {
   fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0
 };
 
 function loadSettings() {
-  // تحميل وضع الشاشة
   const savedTheme = localStorage.getItem('theme_mode');
   if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
     selectedTheme = savedTheme;
@@ -2542,12 +2510,10 @@ function loadSettings() {
   }
   document.querySelectorAll(`input[name="theme"][value="${selectedTheme}"]`).forEach(r => r.checked = true);
   
-  // تحميل إعدادات الأذان
   const savedAzan = localStorage.getItem('azan_index');
   if (savedAzan !== null) selectedAzanIndex = parseInt(savedAzan);
   document.querySelectorAll(`input[name="azan"][value="${selectedAzanIndex}"]`).forEach(r => r.checked = true);
   
-  // تحميل إزاحات الصلوات
   const savedOffsets = localStorage.getItem('prayer_offsets');
   if (savedOffsets) {
     prayerOffsets = JSON.parse(savedOffsets);
@@ -2575,21 +2541,18 @@ function updateOffsetDisplayAll() {
 }
 
 function setupSettingsEvents() {
-  // راديو وضع الشاشة
   document.querySelectorAll('input[name="theme"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       if (e.target.checked) selectedTheme = e.target.value;
     });
   });
   
-  // راديو الأذان
   document.querySelectorAll('input[name="azan"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       if (e.target.checked) selectedAzanIndex = parseInt(e.target.value);
     });
   });
   
-  // أزرار الإزاحات
   const prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   prayers.forEach(prayer => {
     const minusBtn = document.querySelector(`.offset-minus[data-prayer="${prayer}"]`);
@@ -2608,25 +2571,21 @@ function setupSettingsEvents() {
     }
   });
   
-  // زر حفظ الإعدادات
   document.getElementById('saveSettingsBtn').addEventListener('click', () => {
     saveSettings();
     document.getElementById('settingsOverlay').style.display = 'none';
   });
   
-  // زر إلغاء
   document.getElementById('cancelSettingsBtn').addEventListener('click', () => {
     loadSettings();
     document.getElementById('settingsOverlay').style.display = 'none';
   });
   
-  // اختبار الأذان في الإعدادات
   document.getElementById('testAzanSettingsBtn').addEventListener('click', () => {
     playAlert('اختبار');
   });
 }
 
-// فتح وإغلاق نافذة الإعدادات
 document.getElementById('settingsBtn').addEventListener('click', () => {
   loadSettings();
   document.getElementById('settingsOverlay').style.display = 'flex';
@@ -2636,7 +2595,6 @@ document.getElementById('closeSettingsBtn').addEventListener('click', () => {
   document.getElementById('settingsOverlay').style.display = 'none';
 });
 
-// ======================== باقي التهيئة ========================
 document.getElementById('darkToggle').addEventListener('click',()=>{ 
   const isDark=document.body.classList.contains('dark-mode'); 
   darkModeManual=!isDark; 
@@ -2669,12 +2627,10 @@ function startCountdownTimer(){
   countdownInterval=setInterval(updateCountdown,1000); 
 }
 
-// ربط الأحداث
 document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
 document.getElementById('saveImageBtn').addEventListener('click', showSaveDialog);
 document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
 
-// دالة مشاركة رابط الموقع
 async function shareWebsiteLink() {
     const websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
     const shareTitle = 'التقويم الإسلامي - مواقيت الصلاة';
@@ -2701,7 +2657,97 @@ function fallbackCopyLink() {
 
 document.getElementById('shareWebsiteBtn').addEventListener('click', shareWebsiteLink);
 
-// التهيئة
+// ======================== إدارة تحديثات PWA بشكل مثالي ========================
+
+function registerServiceWorkerWithUpdate() {
+    if (!('serviceWorker' in navigator)) {
+        console.log('⚠️ المتصفح لا يدعم Service Worker');
+        return;
+    }
+
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('✅ Service Worker تم تسجيله بنجاح:', registration);
+
+            function showUpdateNotification(worker) {
+                const updateOverlay = document.createElement('div');
+                updateOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    backdrop-filter: blur(5px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    font-family: 'Cairo', sans-serif;
+                    direction: rtl;
+                `;
+                
+                updateOverlay.innerHTML = `
+                    <div style="background: white; border-radius: 24px; padding: 24px; max-width: 320px; text-align: center; animation: slideUp 0.3s ease;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
+                        <h3 style="margin-bottom: 12px; color: #1a3a6b;">تحديث متاح!</h3>
+                        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">نسخة جديدة من التطبيق متاحة. هل تريد التحديث الآن؟</p>
+                        <div style="display: flex; gap: 12px;">
+                            <button id="updateConfirm" style="flex: 1; background: #1a3a6b; color: white; border: none; padding: 10px; border-radius: 40px; cursor: pointer; font-weight: 600;">✅ تحديث الآن</button>
+                            <button id="updateLater" style="flex: 1; background: #eef2f9; color: #1a3a6b; border: none; padding: 10px; border-radius: 40px; cursor: pointer; font-weight: 600;">⏰ لاحقاً</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(updateOverlay);
+                
+                document.getElementById('updateConfirm').addEventListener('click', () => {
+                    worker.postMessage({ type: 'SKIP_WAITING' });
+                    updateOverlay.remove();
+                    window.location.reload();
+                });
+                
+                document.getElementById('updateLater').addEventListener('click', () => {
+                    updateOverlay.remove();
+                });
+            }
+
+            if (registration.waiting) {
+                showUpdateNotification(registration.waiting);
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🆕 تم اكتشاف نسخة جديدة من Service Worker');
+                
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('📢 نسخة جديدة جاهزة للتحديث');
+                        showUpdateNotification(newWorker);
+                    }
+                });
+            });
+
+            setInterval(() => {
+                registration.update();
+                console.log('🔄 جاري التحقق من وجود تحديثات...');
+            }, 60 * 60 * 1000);
+
+        } catch (error) {
+            console.error('❌ فشل تسجيل Service Worker:', error);
+        }
+    });
+}
+
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+    console.log('🔄 تم تغيير Service Worker، إعادة تحميل الصفحة');
+    window.location.reload();
+});
+
+registerServiceWorkerWithUpdate();
+
+// ======================== التهيئة النهائية ========================
 buildCityBar();
 attachEvents();
 startCountdownTimer();
@@ -2711,21 +2757,6 @@ checkAutoTheme();
 setInterval(() => { loadWeather(); }, 600000);
 loadSettings();
 setupSettingsEvents();
-
-// PWA
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.PWAInstall) {
-        window.PWAInstall.init({ swPath: './sw.js', autoRegisterSW: true, showIOSGuideAuto: true });
-    } else {
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('✅ SW registered:', reg))
-                    .catch(err => console.error('❌ SW failed:', err));
-            });
-        }
-    }
-});
 </script>
 </body>
 </html>
