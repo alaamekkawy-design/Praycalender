@@ -1441,7 +1441,7 @@
           <th>عصر</th>
           <th>مغرب</th>
           <th>عشاء</th>
-        </table>
+        </td>
       </thead>
       <tbody id="prayerBody"></tbody>
     </table>
@@ -1773,9 +1773,8 @@ function toAr(n) { return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d
 function isToday() { const t = new Date(); return currentDisplayDate.toDateString() === t.toDateString(); }
 function getViewDate() { return currentDisplayDate; }
 
-// ======================== دوال الإزاحات المصححة ========================
+// ======================== دوال الإزاحات ========================
 
-// دالة تطبيق الإزاحة على وقت الصلاة
 function applyOffsetToTime(time24, offsetMinutes) {
     if (!time24 || time24 === '--:--') return '--:--';
     const [hours, minutes] = time24.split(':').map(Number);
@@ -1783,20 +1782,18 @@ function applyOffsetToTime(time24, offsetMinutes) {
     totalMinutes = ((totalMinutes % 1440) + 1440) % 1440;
     const newHours = Math.floor(totalMinutes / 60);
     const newMinutes = totalMinutes % 60;
-    return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+    return String(newHours).padStart(2, '0') + ':' + String(newMinutes).padStart(2, '0');
 }
 
-// دالة تحويل الوقت مع الإزاحة (للعرض في الجدول)
 function convertTo12HourFormatWithOffset(time24, offset) {
     if (!time24 || time24 === '--:--') return '--:--';
     const adjustedTime = applyOffsetToTime(time24, offset);
     const [hours, minutes] = adjustedTime.split(':');
     const h = parseInt(hours, 10);
     const h12 = (h % 12) || 12;
-    return `${minutes} ${h12}`;
+    return minutes + ' ' + h12;
 }
 
-// دالة حساب الدقائق مع الإزاحة (للكونت داون)
 function getAdjustedMinutes(time24, offset) {
     if (!time24) return null;
     const adjustedTime = applyOffsetToTime(time24, offset);
@@ -1809,7 +1806,7 @@ function getAdjustedMinutes(time24, offset) {
 
 function toCoptic(date) { let y=date.getFullYear()-283; let ny=new Date(date.getFullYear(),8,11); if(date<ny) { y--; ny=new Date(date.getFullYear()-1,8,11); } const diff=Math.floor((date-ny)/86400000); const month=Math.floor(diff/30); const day=diff%30+1; return { day, month, year:y }; }
 
-// ======================== دوال الأذان المصححة ========================
+// ======================== دوال الأذان ========================
 let AZAN_URLS_LIST = [
   'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
   'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3',
@@ -1851,7 +1848,7 @@ function showAzanOverlay(prayerName) {
   if(existingOverlay) existingOverlay.remove();
   const overlay=document.createElement('div'); 
   overlay.id='azanOverlay'; 
-  overlay.innerHTML=`<div class="azan-card"><div class="azan-icon">🕌</div><div class="azan-label">حان وقت صلاة</div><div class="azan-name">${prayerName}</div><button id="stopAzanBtn" class="azan-stop-btn">⏹ إيقاف الأذان</button></div>`;
+  overlay.innerHTML='<div class="azan-card"><div class="azan-icon">🕌</div><div class="azan-label">حان وقت صلاة</div><div class="azan-name">'+prayerName+'</div><button id="stopAzanBtn" class="azan-stop-btn">⏹ إيقاف الأذان</button></div>';
   document.body.appendChild(overlay);
   const stopBtn=document.getElementById('stopAzanBtn'); 
   if(stopBtn) { 
@@ -1862,27 +1859,22 @@ function showAzanOverlay(prayerName) {
 }
 
 async function playAlert(prayerName) { 
-  // إيقاف أي أذان قيد التشغيل أولاً
   stopAzan();
-  
   unlockAudio(); 
   showAzanOverlay(prayerName || 'الصلاة'); 
-  
-  // استخدام الملف المختار من الإعدادات
   const selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
-  
   try { 
     const audio = new Audio(); 
     audio.volume = 1.0; 
     audio.src = selectedUrl; 
     currentAudio = audio; 
     await audio.play(); 
-    audio.addEventListener('ended', () => { 
+    audio.addEventListener('ended', function() { 
       currentAudio = null; 
-      const ol = document.getElementById('azanOverlay'); 
+      var ol = document.getElementById('azanOverlay'); 
       if (ol) ol.remove(); 
     }); 
-    audio.addEventListener('error', () => {
+    audio.addEventListener('error', function() {
       console.error('خطأ في تشغيل الملف الصوتي');
       stopAzan();
     });
@@ -1904,8 +1896,8 @@ function testAzanSound() {
     audio.volume = 1.0;
     audio.src = selectedUrl;
     currentAudio = audio;
-    audio.play().catch(e => console.error('خطأ في تشغيل اختبار الصوت:', e));
-    setTimeout(() => {
+    audio.play().catch(function(e) { console.error('خطأ في تشغيل اختبار الصوت:', e); });
+    setTimeout(function() {
         if (currentAudio) {
             currentAudio.pause();
             currentAudio = null;
@@ -1915,37 +1907,36 @@ function testAzanSound() {
 
 function updateCountdown() { 
   if(!isToday()){ 
-    const s=document.getElementById('nextPrayerSection'); 
+    var s=document.getElementById('nextPrayerSection'); 
     if(s) s.style.display='none'; 
     return; 
   } 
-  const s2=document.getElementById('nextPrayerSection'); 
+  var s2=document.getElementById('nextPrayerSection'); 
   if(s2) s2.style.display=''; 
   if(!prayerData||!prayerData.timings) return; 
-  const now=new Date(); 
-  const curMin=now.getHours()*60+now.getMinutes(); 
-  const curSec=now.getSeconds(); 
-  const t=prayerData.timings; 
+  var now=new Date(); 
+  var curMin=now.getHours()*60+now.getMinutes(); 
+  var curSec=now.getSeconds(); 
+  var t=prayerData.timings; 
   
-  // استخدام الإزاحات في حساب الوقت
-  const list=[
+  var list=[
     {key:'fajr',name:'الفجر',mins:getAdjustedMinutes(t.Fajr, prayerOffsets.fajr), disp:fmtTimeWithOffset(t.Fajr, prayerOffsets.fajr)},
     {key:'sunrise',name:'الشروق',mins:getAdjustedMinutes(t.Sunrise, prayerOffsets.sunrise), disp:fmtTimeWithOffset(t.Sunrise, prayerOffsets.sunrise)},
     {key:'dhuhr',name:'الظهر',mins:getAdjustedMinutes(t.Dhuhr, prayerOffsets.dhuhr), disp:fmtTimeWithOffset(t.Dhuhr, prayerOffsets.dhuhr)},
     {key:'asr',name:'العصر',mins:getAdjustedMinutes(t.Asr, prayerOffsets.asr), disp:fmtTimeWithOffset(t.Asr, prayerOffsets.asr)},
     {key:'maghrib',name:'المغرب',mins:getAdjustedMinutes(t.Maghrib, prayerOffsets.maghrib), disp:fmtTimeWithOffset(t.Maghrib, prayerOffsets.maghrib)},
     {key:'isha',name:'العشاء',mins:getAdjustedMinutes(t.Isha, prayerOffsets.isha), disp:fmtTimeWithOffset(t.Isha, prayerOffsets.isha)}
-  ].filter(p=>p.mins!==null); 
+  ].filter(function(p){ return p.mins!==null; }); 
   
   if(list.length===0) return; 
-  const curTotalSec=curMin*60+curSec; 
-  let next=list.find(p=>p.mins*60>curTotalSec)||list[0]; 
-  let diffSec=next.mins*60-curTotalSec; 
+  var curTotalSec=curMin*60+curSec; 
+  var next=list.find(function(p){ return p.mins*60>curTotalSec; })||list[0]; 
+  var diffSec=next.mins*60-curTotalSec; 
   if(diffSec<=0) diffSec+=24*3600; 
-  const hrs=Math.floor(diffSec/3600), mins=Math.floor((diffSec%3600)/60), secs=diffSec%60; 
+  var hrs=Math.floor(diffSec/3600), mins=Math.floor((diffSec%3600)/60), secs=diffSec%60; 
   document.getElementById('nextPrayerName').textContent=next.name; 
   document.getElementById('nextPrayerTime').textContent=next.disp; 
-  document.getElementById('countdownTimer').textContent=`${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; 
+  document.getElementById('countdownTimer').textContent=String(hrs).padStart(2,'0')+':'+String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0'); 
   if(hrs===0&&mins===0&&secs<=4&&alertedFor!==next.key){ 
     alertedFor=next.key; 
     playAlert(next.name); 
@@ -1953,25 +1944,24 @@ function updateCountdown() {
   if(diffSec>60&&alertedFor===next.key) alertedFor=null; 
 }
 
-// دالة مساعدة لـ fmtTime مع الإزاحة
 function fmtTimeWithOffset(t24, offset) {
-    const total = getAdjustedMinutes(t24, offset);
+    var total = getAdjustedMinutes(t24, offset);
     if (total === null) return '--:--';
-    const h = Math.floor(total / 60);
-    const m = total % 60;
-    const h12 = (h % 12) || 12;
-    const ampm = h < 12 ? 'ص' : 'م';
-    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+    var h = Math.floor(total / 60);
+    var m = total % 60;
+    var h12 = (h % 12) || 12;
+    var ampm = h < 12 ? 'ص' : 'م';
+    return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
 }
 
 // ======================== دوال API ========================
 async function fetchHijriDate(date) { 
-  const y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
+  var y=date.getFullYear(), m=date.getMonth()+1, d=date.getDate(); 
   try { 
-    const resp=await fetch(`https://api.aladhan.com/v1/gToH/${d}-${m}-${y}`); 
-    const data=await resp.json(); 
+    var resp=await fetch('https://api.aladhan.com/v1/gToH/'+d+'-'+m+'-'+y); 
+    var data=await resp.json(); 
     if(data.code===200&&data.data){ 
-      const hij=data.data.hijri; 
+      var hij=data.data.hijri; 
       return { day:parseInt(hij.day), monthName:hij.month.ar, year:parseInt(hij.year) }; 
     } 
     return null; 
@@ -1979,14 +1969,14 @@ async function fetchHijriDate(date) {
 }
 
 function setCachedData(key, data) {
-  const cacheData = { data: data, expiry: Date.now() + (30 * 24 * 60 * 60 * 1000) };
+  var cacheData = { data: data, expiry: Date.now() + (30 * 24 * 60 * 60 * 1000) };
   localStorage.setItem(key, JSON.stringify(cacheData));
 }
 
 function getCachedData(key) {
-  const cached = localStorage.getItem(key);
+  var cached = localStorage.getItem(key);
   if (!cached) return null;
-  const cacheData = JSON.parse(cached);
+  var cacheData = JSON.parse(cached);
   if (Date.now() > cacheData.expiry) {
     localStorage.removeItem(key);
     return null;
@@ -1995,20 +1985,20 @@ function getCachedData(key) {
 }
 
 async function fetchPrayerTimesRaw(date, city) { 
-  const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate(); 
-  const cacheKey = `prayerTimes_${city.name}_${y}_${m}_${d}`;
+  var y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate(); 
+  var cacheKey = 'prayerTimes_' + city.name + '_' + y + '_' + m + '_' + d;
   
-  const cachedData = getCachedData(cacheKey);
+  var cachedData = getCachedData(cacheKey);
   if (cachedData) {
-    console.log(`✅ استخدام بيانات مخزنة لمدينة ${city.name} وتاريخ ${d}/${m}/${y}`);
+    console.log('✅ استخدام بيانات مخزنة لمدينة ' + city.name + ' وتاريخ ' + d + '/' + m + '/' + y);
     return cachedData;
   }
   
-  console.log(`🌍 جلب بيانات جديدة من API لمدينة ${city.name} وتاريخ ${d}/${m}/${y}`);
-  const url = `https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${city.lat}&longitude=${city.lng}&method=5&school=0&midnightMode=1&timezonestring=Africa/Cairo`; 
+  console.log('🌍 جلب بيانات جديدة من API لمدينة ' + city.name + ' وتاريخ ' + d + '/' + m + '/' + y);
+  var url = 'https://api.aladhan.com/v1/timings/'+d+'-'+m+'-'+y+'?latitude='+city.lat+'&longitude='+city.lng+'&method=5&school=0&midnightMode=1&timezonestring=Africa/Cairo'; 
   try { 
-    const resp = await fetch(url); 
-    const data = await resp.json(); 
+    var resp = await fetch(url); 
+    var data = await resp.json(); 
     if (data.code === 200 && data.data) {
       setCachedData(cacheKey, data.data);
       return data.data; 
@@ -2021,26 +2011,22 @@ async function fetchPrayerTimesRaw(date, city) {
 }
 
 function showCitySelectionPopup() {
-  const existing = document.querySelector('.city-popup-overlay');
+  var existing = document.querySelector('.city-popup-overlay');
   if (existing) existing.remove();
   
-  const overlay = document.createElement('div');
+  var overlay = document.createElement('div');
   overlay.className = 'city-popup-overlay';
   
-  const card = document.createElement('div');
+  var card = document.createElement('div');
   card.className = 'city-popup-card';
-  card.innerHTML = `
-    <div class="city-popup-header">📍 اختر مدينة</div>
-    <div class="city-list" id="cityList"></div>
-    <button class="city-close-btn" id="closeCityPopup">✕ إغلاق</button>
-  `;
+  card.innerHTML = '<div class="city-popup-header">📍 اختر مدينة</div><div class="city-list" id="cityList"></div><button class="city-close-btn" id="closeCityPopup">✕ إغلاق</button>';
   
-  const cityList = card.querySelector('#cityList');
-  CITIES.forEach((city, index) => {
-    const option = document.createElement('div');
+  var cityList = card.querySelector('#cityList');
+  CITIES.forEach(function(city, index) {
+    var option = document.createElement('div');
     option.className = 'city-option';
     option.textContent = city.name;
-    option.onclick = async () => {
+    option.onclick = async function() {
       currentCity = index;
       await refreshWidget(currentDisplayDate);
       overlay.remove();
@@ -2048,21 +2034,21 @@ function showCitySelectionPopup() {
     cityList.appendChild(option);
   });
   
-  card.querySelector('#closeCityPopup').onclick = () => overlay.remove();
+  card.querySelector('#closeCityPopup').onclick = function() { overlay.remove(); };
   overlay.appendChild(card);
   document.body.appendChild(overlay);
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 }
 
 function updateGregorianDisplay(date){ 
   document.getElementById('dayAr').innerText=AR_DAYS[date.getDay()]; 
   document.getElementById('dayEn').innerText=EN_DAYS[date.getDay()]; 
   document.getElementById('gregDay').innerText=toAr(date.getDate()); 
-  document.getElementById('gregMonth').innerHTML=AR_MONTHS_G[date.getMonth()]+` <span class="date-month-syr">(${SYRIAC_MONTHS[date.getMonth()]})</span>`; 
+  document.getElementById('gregMonth').innerHTML=AR_MONTHS_G[date.getMonth()]+' <span class="date-month-syr">('+SYRIAC_MONTHS[date.getMonth()]+')</span>'; 
   document.getElementById('gregYear').innerText=toAr(date.getFullYear()); 
-  document.getElementById('gregLineFull').innerText=`${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()}`; 
-  const cop=toCoptic(date); 
-  document.getElementById('copticSpan').innerText=`${toAr(cop.day)} ${COPTIC_MONTHS[cop.month%13]} ${toAr(cop.year)}`; 
+  document.getElementById('gregLineFull').innerText=date.getDate()+' '+EN_MONTHS[date.getMonth()]+' '+date.getFullYear(); 
+  var cop=toCoptic(date); 
+  document.getElementById('copticSpan').innerText=toAr(cop.day)+' '+COPTIC_MONTHS[cop.month%13]+' '+toAr(cop.year); 
 }
 
 function updateHijriDisplay(hijri){ 
@@ -2074,14 +2060,14 @@ function updateHijriDisplay(hijri){
 }
 
 async function updatePrayerDisplay() {
-  const date = getViewDate();
-  const city = CITIES[currentCity];
-  const tbody = document.getElementById('prayerBody');
+  var date = getViewDate();
+  var city = CITIES[currentCity];
+  var tbody = document.getElementById('prayerBody');
   tbody.innerHTML = '';  
   
-  const row = tbody.insertRow();
+  var row = tbody.insertRow();
   
-  const cityCell = row.insertCell(0);
+  var cityCell = row.insertCell(0);
   cityCell.innerText = city.name;
   cityCell.style.cursor = 'pointer';
   cityCell.style.backgroundColor = '#f8fafd';
@@ -2089,16 +2075,15 @@ async function updatePrayerDisplay() {
   cityCell.onclick = showCitySelectionPopup;
   cityCell.title = 'اضغط لاختيار مدينة أخرى';
   
-  const rawData = await fetchPrayerTimesRaw(date, city);
+  var rawData = await fetchPrayerTimesRaw(date, city);
   if (rawData && rawData.timings) {  
-    const t = rawData.timings;
-    // استخدام الإزاحات في عرض الوقت
-    row.insertCell(1).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Fajr.slice(0,5), prayerOffsets.fajr)}</span>`;
-    row.insertCell(2).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Sunrise.slice(0,5), prayerOffsets.sunrise)}</span>`;
-    row.insertCell(3).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Dhuhr.slice(0,5), prayerOffsets.dhuhr)}</span>`;
-    row.insertCell(4).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Asr.slice(0,5), prayerOffsets.asr)}</span>`;
-    row.insertCell(5).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Maghrib.slice(0,5), prayerOffsets.maghrib)}</span>`;
-    row.insertCell(6).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Isha.slice(0,5), prayerOffsets.isha)}</span>`;
+    var t = rawData.timings;
+    row.insertCell(1).innerHTML = '<span>' + convertTo12HourFormatWithOffset(t.Fajr.slice(0,5), prayerOffsets.fajr) + '</span>';
+    row.insertCell(2).innerHTML = '<span>' + convertTo12HourFormatWithOffset(t.Sunrise.slice(0,5), prayerOffsets.sunrise) + '</span>';
+    row.insertCell(3).innerHTML = '<span>' + convertTo12HourFormatWithOffset(t.Dhuhr.slice(0,5), prayerOffsets.dhuhr) + '</span>';
+    row.insertCell(4).innerHTML = '<span>' + convertTo12HourFormatWithOffset(t.Asr.slice(0,5), prayerOffsets.asr) + '</span>';
+    row.insertCell(5).innerHTML = '<span>' + convertTo12HourFormatWithOffset(t.Maghrib.slice(0,5), prayerOffsets.maghrib) + '</span>';
+    row.insertCell(6).innerHTML = '<span>' + convertTo12HourFormatWithOffset(t.Isha.slice(0,5), prayerOffsets.isha) + '</span>';
     prayerData = rawData;
   } else {
     row.insertCell(1).innerHTML = '<span>--:--</span>';
@@ -2109,7 +2094,7 @@ async function updatePrayerDisplay() {
     row.insertCell(6).innerHTML = '<span>--:--</span>';
   }
   
-  for (let i = 0; i <= 6; i++) {
+  for (var i = 0; i <= 6; i++) {
     if (row.cells[i]) {
       row.cells[i].style.padding = '2% 1%';
       row.cells[i].style.textAlign = 'center';
@@ -2121,10 +2106,10 @@ async function updatePrayerDisplay() {
 async function refreshWidget(targetDate) {
   if (isLoading) return;
   isLoading = true;
-  const date = targetDate || currentDisplayDate;
+  var date = targetDate || currentDisplayDate;
   updateGregorianDisplay(date);
   try {
-    const hijri = await fetchHijriDate(date);
+    var hijri = await fetchHijriDate(date);
     if (hijri) updateHijriDisplay(hijri);
     await updatePrayerDisplay();
     updateCountdown();
@@ -2133,66 +2118,36 @@ async function refreshWidget(targetDate) {
   isLoading = false;
 }
 
-const WEATHER_KEY = '819c643e98f045faadd50730260106';
+var WEATHER_KEY = '819c643e98f045faadd50730260106';
 
 function getWindDirectionShort(deg) {
-  const directions = ['↑ ش', '↗ شش', '→ ش', '↘ جش', '↓ ج', '↙ جغ', '← غ', '↖ شغ'];
+  var directions = ['↑ ش', '↗ شش', '→ ش', '↘ جش', '↓ ج', '↙ جغ', '← غ', '↖ شغ'];
   return directions[Math.round(deg / 45) % 8];
 }
 
 async function loadWeather() {
-  const city = CITIES[currentCity];
-  const weatherBox = document.getElementById('weatherBox');
+  var city = CITIES[currentCity];
+  var weatherBox = document.getElementById('weatherBox');
   
   weatherBox.innerHTML = '<div class="weather-loading">☁️ جاري تحميل الطقس...</div>';
   
   try {
-    const url = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_KEY}&q=${city.lat},${city.lng}&lang=ar`;
-    const response = await fetch(url);
-    const data = await response.json();
+    var url = 'https://api.weatherapi.com/v1/current.json?key='+WEATHER_KEY+'&q='+city.lat+','+city.lng+'&lang=ar';
+    var response = await fetch(url);
+    var data = await response.json();
     
     if (data && !data.error) {
-      const current = data.current;
-      const temp = current.temp_c;
-      const condition = current.condition.text;
-      const humidity = current.humidity;
-      const wind = current.wind_kph;
-      const windDir = getWindDirectionShort(current.wind_degree);
-      const visibility = current.vis_km;
-      const feelsLike = current.feelslike_c;
-      const icon = current.condition.icon ? `https:${current.condition.icon}` : '';
+      var current = data.current;
+      var temp = current.temp_c;
+      var condition = current.condition.text;
+      var humidity = current.humidity;
+      var wind = current.wind_kph;
+      var windDir = getWindDirectionShort(current.wind_degree);
+      var visibility = current.vis_km;
+      var feelsLike = current.feelslike_c;
+      var icon = current.condition.icon ? 'https:'+current.condition.icon : '';
       
-      weatherBox.innerHTML = `
-        <div class="weather-city">${city.name}</div>
-        <div class="weather-main">
-          <div class="weather-temp-section">
-            <div class="weather-temp">${Math.round(temp)}<span class="weather-unit">°</span></div>
-            <div class="weather-condition">${condition}</div>
-          </div>
-          ${icon ? `<img class="weather-icon" src="${icon}" alt="${condition}">` : '<div class="weather-icon">🌡️</div>'}
-        </div>
-        <div class="weather-details">
-          <div class="weather-detail">
-            <div class="weather-wind">
-              <span class="weather-wind-speed">${Math.round(wind)}</span>
-              <span class="weather-wind-dir">${windDir}</span>
-            </div>
-            <div class="weather-detail-lbl">الرياح</div>
-          </div>
-          <div class="weather-detail">
-            <div class="weather-detail-val">${visibility} <span style="font-size:9px;">كم</span></div>
-            <div class="weather-detail-lbl">الرؤية</div>
-          </div>
-          <div class="weather-detail">
-            <div class="weather-detail-val">${humidity}%</div>
-            <div class="weather-detail-lbl">الرطوبة</div>
-          </div>
-          <div class="weather-detail">
-            <div class="weather-detail-val">${Math.round(feelsLike)}°</div>
-            <div class="weather-detail-lbl">الإحساس</div>
-          </div>
-        </div>
-      `;
+      weatherBox.innerHTML = '<div class="weather-city">'+city.name+'</div><div class="weather-main"><div class="weather-temp-section"><div class="weather-temp">'+Math.round(temp)+'<span class="weather-unit">°</span></div><div class="weather-condition">'+condition+'</div></div>'+(icon ? '<img class="weather-icon" src="'+icon+'" alt="'+condition+'">' : '<div class="weather-icon">🌡️</div>')+'</div><div class="weather-details"><div class="weather-detail"><div class="weather-wind"><span class="weather-wind-speed">'+Math.round(wind)+'</span><span class="weather-wind-dir">'+windDir+'</span></div><div class="weather-detail-lbl">الرياح</div></div><div class="weather-detail"><div class="weather-detail-val">'+visibility+' <span style="font-size:9px;">كم</span></div><div class="weather-detail-lbl">الرؤية</div></div><div class="weather-detail"><div class="weather-detail-val">'+humidity+'%</div><div class="weather-detail-lbl">الرطوبة</div></div><div class="weather-detail"><div class="weather-detail-val">'+Math.round(feelsLike)+'°</div><div class="weather-detail-lbl">الإحساس</div></div></div>';
       return;
     }
   } catch(e) {
@@ -2200,55 +2155,22 @@ async function loadWeather() {
   }
   
   try {
-    const fallbackUrl = `https://wttr.in/${city.lat},${city.lng}?format=j1&lang=ar`;
-    const response = await fetch(fallbackUrl);
-    const data = await response.json();
+    var fallbackUrl = 'https://wttr.in/'+city.lat+','+city.lng+'?format=j1&lang=ar';
+    var response = await fetch(fallbackUrl);
+    var data = await response.json();
     
     if (data && data.current_condition) {
-      const current = data.current_condition[0];
-      const temp = current.temp_C;
-      const condition = current.lang_ar ? current.lang_ar[0].value : current.weatherDesc[0].value;
-      const humidity = current.humidity;
-      const wind = current.windspeedKmph;
-      const windDir = getWindDirectionShort(parseInt(current.winddirDegree));
-      const visibility = current.visibility;
-      const feelsLike = current.FeelsLikeC;
-      const icon = current.weatherIconUrl ? current.weatherIconUrl[0].value : '';
+      var current = data.current_condition[0];
+      var temp = current.temp_C;
+      var condition = current.lang_ar ? current.lang_ar[0].value : current.weatherDesc[0].value;
+      var humidity = current.humidity;
+      var wind = current.windspeedKmph;
+      var windDir = getWindDirectionShort(parseInt(current.winddirDegree));
+      var visibility = current.visibility;
+      var feelsLike = current.FeelsLikeC;
+      var icon = current.weatherIconUrl ? current.weatherIconUrl[0].value : '';
       
-      weatherBox.innerHTML = `
-        <div class="weather-city">
-          ${city.name}
-          <span style="font-size:11px; opacity:0.7; margin-right:6px;" title="استخدام خدمة احتياطية">🔑</span>
-        </div>
-        <div class="weather-main">
-          <div class="weather-temp-section">
-            <div class="weather-temp">${temp}<span class="weather-unit">°</span></div>
-            <div class="weather-condition">${condition}</div>
-          </div>
-          ${icon ? `<img class="weather-icon" src="${icon}" alt="${condition}">` : '<div class="weather-icon">🌡️</div>'}
-        </div>
-        <div class="weather-details">
-          <div class="weather-detail">
-            <div class="weather-wind">
-              <span class="weather-wind-speed">${wind}</span>
-              <span class="weather-wind-dir">${windDir}</span>
-            </div>
-            <div class="weather-detail-lbl">الرياح</div>
-          </div>
-          <div class="weather-detail">
-            <div class="weather-detail-val">${visibility} <span style="font-size:9px;">كم</span></div>
-            <div class="weather-detail-lbl">الرؤية</div>
-          </div>
-          <div class="weather-detail">
-            <div class="weather-detail-val">${humidity}%</div>
-            <div class="weather-detail-lbl">الرطوبة</div>
-          </div>
-          <div class="weather-detail">
-            <div class="weather-detail-val">${feelsLike}°</div>
-            <div class="weather-detail-lbl">الإحساس</div>
-          </div>
-        </div>
-      `;
+      weatherBox.innerHTML = '<div class="weather-city">'+city.name+'<span style="font-size:11px; opacity:0.7; margin-right:6px;" title="استخدام خدمة احتياطية">🔑</span></div><div class="weather-main"><div class="weather-temp-section"><div class="weather-temp">'+temp+'<span class="weather-unit">°</span></div><div class="weather-condition">'+condition+'</div></div>'+(icon ? '<img class="weather-icon" src="'+icon+'" alt="'+condition+'">' : '<div class="weather-icon">🌡️</div>')+'</div><div class="weather-details"><div class="weather-detail"><div class="weather-wind"><span class="weather-wind-speed">'+wind+'</span><span class="weather-wind-dir">'+windDir+'</span></div><div class="weather-detail-lbl">الرياح</div></div><div class="weather-detail"><div class="weather-detail-val">'+visibility+' <span style="font-size:9px;">كم</span></div><div class="weather-detail-lbl">الرؤية</div></div><div class="weather-detail"><div class="weather-detail-val">'+humidity+'%</div><div class="weather-detail-lbl">الرطوبة</div></div><div class="weather-detail"><div class="weather-detail-val">'+feelsLike+'°</div><div class="weather-detail-lbl">الإحساس</div></div></div>';
       return;
     } else {
       weatherBox.innerHTML = '<div class="weather-loading">⚠️ لا توجد بيانات طقس</div>';
@@ -2260,121 +2182,97 @@ async function loadWeather() {
 }
 
 function showSaveDialog() {
-  const existing = document.querySelector('.save-dialog-overlay');
+  var existing = document.querySelector('.save-dialog-overlay');
   if (existing) existing.remove();
   
-  const overlay = document.createElement('div');
+  var overlay = document.createElement('div');
   overlay.className = 'save-dialog-overlay';
   
-  const card = document.createElement('div');
+  var card = document.createElement('div');
   card.className = 'save-dialog-card';
   
-  card.innerHTML = `
-    <div class="save-dialog-header">📸 حفظ الصورة</div>
-    <div class="save-dialog-options">
-      <button class="save-option-btn" id="saveWithZodiac">✨ حفظ الصورة مع معلومات البرج</button>
-      <button class="save-option-btn" id="saveWithoutZodiac">📅 حفظ الصورة بدون معلومات البرج</button>
-    </div>
-    <button class="save-cancel-btn" id="closeSaveDialog">إلغاء</button>
-  `;
+  card.innerHTML = '<div class="save-dialog-header">📸 حفظ الصورة</div><div class="save-dialog-options"><button class="save-option-btn" id="saveWithZodiac">✨ حفظ الصورة مع معلومات البرج</button><button class="save-option-btn" id="saveWithoutZodiac">📅 حفظ الصورة بدون معلومات البرج</button></div><button class="save-cancel-btn" id="closeSaveDialog">إلغاء</button>';
   
-  card.querySelector('#saveWithZodiac').onclick = () => {
+  card.querySelector('#saveWithZodiac').onclick = function() {
     overlay.remove();
     saveAsImage(true);
   };
-  card.querySelector('#saveWithoutZodiac').onclick = () => {
+  card.querySelector('#saveWithoutZodiac').onclick = function() {
     overlay.remove();
     saveAsImage(false);
   };
-  card.querySelector('#closeSaveDialog').onclick = () => overlay.remove();
+  card.querySelector('#closeSaveDialog').onclick = function() { overlay.remove(); };
   
   overlay.appendChild(card);
   document.body.appendChild(overlay);
-  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 }
 
 async function saveAsImage(withZodiac) {
-  const date = getViewDate();
-  const pv = document.getElementById('printView');
+  var date = getViewDate();
+  var pv = document.getElementById('printView');
   
   document.getElementById('pv-dayAr').textContent = AR_DAYS[date.getDay()];
   document.getElementById('pv-dayEn').textContent = EN_DAYS[date.getDay()];
   
   document.getElementById('pv-gregDay').textContent = toAr(date.getDate());
-  document.getElementById('pv-gregMonth').innerHTML = `${AR_MONTHS_G[date.getMonth()]} <span style="font-family:'Amiri',serif; font-size:16px; font-weight:600; opacity:0.75;">(${SYRIAC_MONTHS[date.getMonth()]})</span>`;
+  document.getElementById('pv-gregMonth').innerHTML = AR_MONTHS_G[date.getMonth()] + ' <span style="font-family:Amiri,serif; font-size:16px; font-weight:600; opacity:0.75;">(' + SYRIAC_MONTHS[date.getMonth()] + ')</span>';
   document.getElementById('pv-gregYear').textContent = toAr(date.getFullYear());
-  document.getElementById('pv-greg').textContent = `${date.getDate()} ${EN_MONTHS[date.getMonth()]} ${date.getFullYear()} `;  
+  document.getElementById('pv-greg').textContent = date.getDate() + ' ' + EN_MONTHS[date.getMonth()] + ' ' + date.getFullYear();  
  
-  const cop = toCoptic(date);
-  document.getElementById('pv-coptic').textContent = `${toAr(cop.day)} ${COPTIC_MONTHS[cop.month % 13]} ${toAr(cop.year)}`;
+  var cop = toCoptic(date);
+  document.getElementById('pv-coptic').textContent = toAr(cop.day) + ' ' + COPTIC_MONTHS[cop.month % 13] + ' ' + toAr(cop.year);
   
-  const hijri = await fetchHijriDate(date);
+  var hijri = await fetchHijriDate(date);
   if (hijri) {
     document.getElementById('pv-hijriDay').textContent = toAr(hijri.day);
     document.getElementById('pv-hijriMonth').textContent = hijri.monthName;
     document.getElementById('pv-hijriYear').textContent = toAr(hijri.year);
   }
   
-  const tableDiv = document.getElementById('pv-prayer-table');
+  var tableDiv = document.getElementById('pv-prayer-table');
   
-  let tableHtml = `
-    <style>
-      .pv-table { width:100%; border-collapse:collapse; font-size:11px; direction:rtl; }
-      .pv-table th, .pv-table td { padding:6px 3px; border:0.5px solid #c5cfe0; text-align:center; }
-      .pv-table th { background:#f0f4fa; color:#1a3a6b; font-weight:700; }
-      .pv-table td { color:#1a3a6b; }
-    </style>
-    <table class="pv-table">
-      <thead>
-        <tr>
-          <th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  var tableHtml = '<style>.pv-table { width:100%; border-collapse:collapse; font-size:11px; direction:rtl; }.pv-table th, .pv-table td { padding:6px 3px; border:0.5px solid #c5cfe0; text-align:center; }.pv-table th { background:#f0f4fa; color:#1a3a6b; font-weight:700; }.pv-table td { color:#1a3a6b; }</style><table class="pv-table"><thead><tr><th>المواقيت</th><th>فجر</th><th>شروق</th><th>ظهر</th><th>عصر</th><th>مغرب</th><th>عشاء</th></tr></thead><tbody>';
   
-  for (let i = 0; i < CITIES.length; i++) {
-    const cityData = CITIES[i];
-    const cityRaw = await fetchPrayerTimesRaw(date, cityData);
-    tableHtml += `<tr>`;
-    tableHtml += `<td style="font-weight:800;">${cityData.name}</td>`;
+  for (var i = 0; i < CITIES.length; i++) {
+    var cityData = CITIES[i];
+    var cityRaw = await fetchPrayerTimesRaw(date, cityData);
+    tableHtml += '<tr>';
+    tableHtml += '<td style="font-weight:800;">' + cityData.name + '</td>';
     if (cityRaw && cityRaw.timings) {
-      const t = cityRaw.timings;
-      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Fajr.slice(0,5), prayerOffsets.fajr)}<\/td>`;
-      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Sunrise.slice(0,5), prayerOffsets.sunrise)}<\/td>`;
-      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Dhuhr.slice(0,5), prayerOffsets.dhuhr)}<\/td>`;
-      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Asr.slice(0,5), prayerOffsets.asr)}<\/td>`;
-      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Maghrib.slice(0,5), prayerOffsets.maghrib)}<\/td>`;
-      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Isha.slice(0,5), prayerOffsets.isha)}<\/td>`;
+      var t = cityRaw.timings;
+      tableHtml += '<td>' + convertTo12HourFormatWithOffset(t.Fajr.slice(0,5), prayerOffsets.fajr) + '</td>';
+      tableHtml += '<td>' + convertTo12HourFormatWithOffset(t.Sunrise.slice(0,5), prayerOffsets.sunrise) + '</td>';
+      tableHtml += '<td>' + convertTo12HourFormatWithOffset(t.Dhuhr.slice(0,5), prayerOffsets.dhuhr) + '</td>';
+      tableHtml += '<td>' + convertTo12HourFormatWithOffset(t.Asr.slice(0,5), prayerOffsets.asr) + '</td>';
+      tableHtml += '<td>' + convertTo12HourFormatWithOffset(t.Maghrib.slice(0,5), prayerOffsets.maghrib) + '</td>';
+      tableHtml += '<td>' + convertTo12HourFormatWithOffset(t.Isha.slice(0,5), prayerOffsets.isha) + '</td>';
     } else {
-      for (let j = 0; j < 6; j++) tableHtml += `<td>--:--<\/td>`;
+      for (var j = 0; j < 6; j++) tableHtml += '<td>--:--</td>';
     }
-    tableHtml += `</tr>`;
+    tableHtml += '</tr>';
   }
   
-  tableHtml += `</tbody></table>`;
+  tableHtml += '</tbody></table>';
   tableDiv.innerHTML = tableHtml;
   
-  const zodiacDiv = document.getElementById('pv-zodiac');
+  var zodiacDiv = document.getElementById('pv-zodiac');
   if (withZodiac) {
-    const zodiac = getZodiacInfo(date);
-    zodiacDiv.innerHTML = `
-      ✨ مواليد هذا اليوم :<br>
-      <strong>${zodiac.name}</strong> | ${zodiac.element} | كوكب ${zodiac.planet}
-    `;
+    var zodiac = getZodiacInfo(date);
+    zodiacDiv.innerHTML = '✨ مواليد هذا اليوم :<br><strong>' + zodiac.name + '</strong> | ' + zodiac.element + ' | كوكب ' + zodiac.planet;
     zodiacDiv.style.display = 'block';
   } else {
     zodiacDiv.style.display = 'none';
   }
   
   pv.style.display = 'block';
-  await new Promise(r => setTimeout(r, 100));
+  await new Promise(function(r) { setTimeout(r, 100); });
   
   try {
-    const canvas = await html2canvas(pv, { scale: 3, backgroundColor: '#ffffff' });
-    const link = document.createElement('a');
-    const dateStr = `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}`;
-    link.download = `مواقيت_${dateStr}.png`;
+    var canvas = await html2canvas(pv, { scale: 3, backgroundColor: '#ffffff' });
+    var link = document.createElement('a');
+    var dateStr = date.getDate()+'-'+(date.getMonth()+1)+'-'+date.getFullYear();
+    link.download = 'مواقيت_' + dateStr + '.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
     showToast('تم حفظ الصورة ✅');
@@ -2386,8 +2284,8 @@ async function saveAsImage(withZodiac) {
 }
 
 function getZodiacInfo(date) {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
   
   if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return { name: 'الحمل', element: 'ناري', planet: 'المريخ' };
   if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return { name: 'الثور', element: 'ترابي', planet: 'الزهرة' };
@@ -2415,50 +2313,34 @@ function closePicker() {
 
 function renderPicker() { 
   if (pickerModal) pickerModal.remove(); 
-  const overlay = document.createElement('div'); 
+  var overlay = document.createElement('div'); 
   overlay.className = 'datepicker-overlay'; 
-  const y = activePickerDate.getFullYear(), m = activePickerDate.getMonth(); 
-  const firstDay = new Date(y, m, 1).getDay(); 
-  const daysInMonth = new Date(y, m + 1, 0).getDate(); 
-  let grid = []; 
-  for (let i = 0; i < firstDay; i++) grid.push(null); 
-  for (let d = 1; d <= daysInMonth; d++) grid.push(new Date(y, m, d)); 
+  var y = activePickerDate.getFullYear(), m = activePickerDate.getMonth(); 
+  var firstDay = new Date(y, m, 1).getDay(); 
+  var daysInMonth = new Date(y, m + 1, 0).getDate(); 
+  var grid = []; 
+  for (var i = 0; i < firstDay; i++) grid.push(null); 
+  for (var d = 1; d <= daysInMonth; d++) grid.push(new Date(y, m, d)); 
   while (grid.length % 7 !== 0) grid.push(null); 
-  const weekdays = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']; 
+  var weekdays = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']; 
   
-  overlay.innerHTML = `
-    <div class="datepicker-modal">
-      <div class="year-month-control">
-        <button id="prevYear">««</button>
-        <button id="prevMonth">‹</button>
-        <span id="monthYear">${AR_MONTHS_G[m]} ${toAr(y)}</span>
-        <button id="nextMonth">›</button>
-        <button id="nextYear">»»</button>
-      </div>
-      <div class="picker-grid" id="pickerGrid"></div>
-      <div class="picker-actions">
-        <button id="todayBtn">📅 اليوم</button>
-        <button id="saveFromPickerBtn" class="outline">📸 حفظ كصورة</button>
-        <button id="closePickerBtn" class="outline">إلغاء</button>
-      </div>
-    </div>
-  `; 
+  overlay.innerHTML = '<div class="datepicker-modal"><div class="year-month-control"><button id="prevYear">««</button><button id="prevMonth">‹</button><span id="monthYear">'+AR_MONTHS_G[m]+' '+toAr(y)+'</span><button id="nextMonth">›</button><button id="nextYear">»»</button></div><div class="picker-grid" id="pickerGrid"></div><div class="picker-actions"><button id="todayBtn">📅 اليوم</button><button id="saveFromPickerBtn" class="outline">📸 حفظ كصورة</button><button id="closePickerBtn" class="outline">إلغاء</button></div></div>'; 
   
   document.body.appendChild(overlay); 
   pickerModal = overlay; 
   overlay.classList.add('open');
   
   function buildGrid() { 
-    const container = document.getElementById('pickerGrid'); 
+    var container = document.getElementById('pickerGrid'); 
     container.innerHTML = ''; 
-    weekdays.forEach(wd => { 
-      const d = document.createElement('div'); 
+    weekdays.forEach(function(wd) { 
+      var d = document.createElement('div'); 
       d.className = 'picker-weekday'; 
       d.innerText = wd; 
       container.appendChild(d); 
     }); 
-    grid.forEach(dt => { 
-      const div = document.createElement('div'); 
+    grid.forEach(function(dt) { 
+      var div = document.createElement('div'); 
       div.className = 'picker-day'; 
       if (!dt) { 
         div.classList.add('empty'); 
@@ -2467,7 +2349,7 @@ function renderPicker() {
         div.innerText = toAr(dt.getDate()); 
         if (dt.toDateString() === currentDisplayDate.toDateString()) 
           div.classList.add('selected'); 
-        div.onclick = async () => { 
+        div.onclick = async function() { 
           currentDisplayDate = new Date(dt); 
           await refreshWidget(currentDisplayDate); 
           closePicker(); 
@@ -2478,66 +2360,66 @@ function renderPicker() {
   } 
   
   function updateGrid() { 
-    const ny = activePickerDate.getFullYear(), nm = activePickerDate.getMonth(); 
-    document.getElementById('monthYear').innerText = `${AR_MONTHS_G[nm]} ${toAr(ny)}`; 
-    const fd = new Date(ny, nm, 1).getDay(); 
-    const dim = new Date(ny, nm + 1, 0).getDate(); 
-    let ng = []; 
-    for (let i = 0; i < fd; i++) ng.push(null); 
-    for (let d = 1; d <= dim; d++) ng.push(new Date(ny, nm, d)); 
+    var ny = activePickerDate.getFullYear(), nm = activePickerDate.getMonth(); 
+    document.getElementById('monthYear').innerText = AR_MONTHS_G[nm] + ' ' + toAr(ny); 
+    var fd = new Date(ny, nm, 1).getDay(); 
+    var dim = new Date(ny, nm + 1, 0).getDate(); 
+    var ng = []; 
+    for (var i = 0; i < fd; i++) ng.push(null); 
+    for (var d = 1; d <= dim; d++) ng.push(new Date(ny, nm, d)); 
     while (ng.length % 7 !== 0) ng.push(null); 
     grid = ng; 
     buildGrid(); 
   } 
   
-  document.getElementById('prevMonth').onclick = () => { 
+  document.getElementById('prevMonth').onclick = function() { 
     activePickerDate.setMonth(activePickerDate.getMonth() - 1); 
     updateGrid(); 
   }; 
-  document.getElementById('nextMonth').onclick = () => { 
+  document.getElementById('nextMonth').onclick = function() { 
     activePickerDate.setMonth(activePickerDate.getMonth() + 1); 
     updateGrid(); 
   }; 
-  document.getElementById('prevYear').onclick = () => { 
+  document.getElementById('prevYear').onclick = function() { 
     activePickerDate.setFullYear(activePickerDate.getFullYear() - 1); 
     updateGrid(); 
   }; 
-  document.getElementById('nextYear').onclick = () => { 
+  document.getElementById('nextYear').onclick = function() { 
     activePickerDate.setFullYear(activePickerDate.getFullYear() + 1); 
     updateGrid(); 
   }; 
-  document.getElementById('todayBtn').onclick = async () => { 
+  document.getElementById('todayBtn').onclick = async function() { 
     currentDisplayDate = new Date(); 
     await refreshWidget(currentDisplayDate); 
     closePicker(); 
   }; 
   document.getElementById('closePickerBtn').onclick = closePicker;
-  document.getElementById('saveFromPickerBtn').onclick = () => {
+  document.getElementById('saveFromPickerBtn').onclick = function() {
     closePicker();
     showSaveDialog();
   };
-  overlay.onclick = e => { 
+  overlay.onclick = function(e) { 
     if (e.target === overlay) closePicker(); 
   }; 
   buildGrid(); 
 }
 
 function attachEvents(){ 
-  const dateRow = document.getElementById('dateRow');
-  const gregLine = document.getElementById('gregLine');
+  var dateRow = document.getElementById('dateRow');
+  var gregLine = document.getElementById('gregLine');
   if (dateRow) dateRow.addEventListener('click', openDatePicker);
   if (gregLine) gregLine.addEventListener('click', openDatePicker);
 }
 
 function isDarkTime(){ 
   if(!prayerData||!prayerData.timings){ 
-    const h=new Date().getHours(); 
+    var h=new Date().getHours(); 
     return h>=19||h<6; 
   } 
-  const now=new Date(); 
-  const cur=now.getHours()*60+now.getMinutes(); 
-  const maghrib=getAdjustedMinutes(prayerData.timings.Maghrib, prayerOffsets.maghrib);
-  const fajr=getAdjustedMinutes(prayerData.timings.Fajr, prayerOffsets.fajr);
+  var now=new Date(); 
+  var cur=now.getHours()*60+now.getMinutes(); 
+  var maghrib=getAdjustedMinutes(prayerData.timings.Maghrib, prayerOffsets.maghrib);
+  var fajr=getAdjustedMinutes(prayerData.timings.Fajr, prayerOffsets.fajr);
   if(maghrib===null||fajr===null) return false; 
   return cur>=maghrib||cur<fajr; 
 }
@@ -2560,24 +2442,30 @@ function checkAutoTheme(){
   applyDarkMode(isDarkTime()); 
 }
 
-let prayerOffsets = {
+var prayerOffsets = {
   fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0
 };
 
 function loadSettings() {
-  const savedTheme = localStorage.getItem('theme_mode');
-  if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
+  var savedTheme = localStorage.getItem('theme_mode');
+  if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto')) {
     selectedTheme = savedTheme;
   } else {
     selectedTheme = 'auto';
   }
-  document.querySelectorAll(`input[name="theme"][value="${selectedTheme}"]`).forEach(r => r.checked = true);
+  var themeRadios = document.querySelectorAll('input[name="theme"]');
+  for (var i = 0; i < themeRadios.length; i++) {
+    if (themeRadios[i].value === selectedTheme) themeRadios[i].checked = true;
+  }
   
-  const savedAzan = localStorage.getItem('azan_index');
+  var savedAzan = localStorage.getItem('azan_index');
   if (savedAzan !== null) selectedAzanIndex = parseInt(savedAzan);
-  document.querySelectorAll(`input[name="azan"][value="${selectedAzanIndex}"]`).forEach(r => r.checked = true);
+  var azanRadios = document.querySelectorAll('input[name="azan"]');
+  for (var i = 0; i < azanRadios.length; i++) {
+    if (parseInt(azanRadios[i].value) === selectedAzanIndex) azanRadios[i].checked = true;
+  }
   
-  const savedOffsets = localStorage.getItem('prayer_offsets');
+  var savedOffsets = localStorage.getItem('prayer_offsets');
   if (savedOffsets) {
     prayerOffsets = JSON.parse(savedOffsets);
   }
@@ -2604,80 +2492,88 @@ function updateOffsetDisplayAll() {
 }
 
 function setupSettingsEvents() {
-  document.querySelectorAll('input[name="theme"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
+  var themeRadios = document.querySelectorAll('input[name="theme"]');
+  for (var i = 0; i < themeRadios.length; i++) {
+    themeRadios[i].addEventListener('change', function(e) {
       if (e.target.checked) selectedTheme = e.target.value;
     });
-  });
+  }
   
-  document.querySelectorAll('input[name="azan"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
+  var azanRadios = document.querySelectorAll('input[name="azan"]');
+  for (var i = 0; i < azanRadios.length; i++) {
+    azanRadios[i].addEventListener('change', function(e) {
       if (e.target.checked) selectedAzanIndex = parseInt(e.target.value);
     });
-  });
+  }
   
-  const prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  prayers.forEach(prayer => {
-    const minusBtn = document.querySelector(`.offset-minus[data-prayer="${prayer}"]`);
-    const plusBtn = document.querySelector(`.offset-plus[data-prayer="${prayer}"]`);
+  var prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  for (var p = 0; p < prayers.length; p++) {
+    var prayer = prayers[p];
+    var minusBtn = document.querySelector('.offset-minus[data-prayer="'+prayer+'"]');
+    var plusBtn = document.querySelector('.offset-plus[data-prayer="'+prayer+'"]');
     if (minusBtn) {
-      minusBtn.addEventListener('click', () => {
-        prayerOffsets[prayer]--;
-        updateOffsetDisplayAll();
-      });
+      minusBtn.addEventListener('click', function(prayer) {
+        return function() {
+          prayerOffsets[prayer]--;
+          updateOffsetDisplayAll();
+        };
+      }(prayer));
     }
     if (plusBtn) {
-      plusBtn.addEventListener('click', () => {
-        prayerOffsets[prayer]++;
-        updateOffsetDisplayAll();
-      });
+      plusBtn.addEventListener('click', function(prayer) {
+        return function() {
+          prayerOffsets[prayer]++;
+          updateOffsetDisplayAll();
+        };
+      }(prayer));
     }
-  });
+  }
   
-  document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+  document.getElementById('saveSettingsBtn').addEventListener('click', function() {
     saveSettings();
     document.getElementById('settingsOverlay').style.display = 'none';
   });
   
-  document.getElementById('cancelSettingsBtn').addEventListener('click', () => {
+  document.getElementById('cancelSettingsBtn').addEventListener('click', function() {
     loadSettings();
     document.getElementById('settingsOverlay').style.display = 'none';
   });
   
-  document.getElementById('testAzanSettingsBtn').addEventListener('click', () => {
+  document.getElementById('testAzanSettingsBtn').addEventListener('click', function() {
     testAzanSound();
   });
 }
 
-document.getElementById('settingsBtn').addEventListener('click', () => {
+document.getElementById('settingsBtn').addEventListener('click', function() {
   loadSettings();
   document.getElementById('settingsOverlay').style.display = 'flex';
 });
 
-document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+document.getElementById('closeSettingsBtn').addEventListener('click', function() {
   document.getElementById('settingsOverlay').style.display = 'none';
 });
 
-document.getElementById('darkToggle').addEventListener('click',()=>{ 
-  const isDark=document.body.classList.contains('dark-mode'); 
+document.getElementById('darkToggle').addEventListener('click',function(){ 
+  var isDark=document.body.classList.contains('dark-mode'); 
   darkModeManual=!isDark; 
   applyDarkMode(darkModeManual); 
-  setTimeout(()=>{ 
+  setTimeout(function(){ 
     darkModeManual=null; 
     checkAutoTheme(); 
   },6*3600*1000); 
 });
 
 function buildCityBar() {
-  const bar = document.getElementById('cityBar');
+  var bar = document.getElementById('cityBar');
   bar.innerHTML = '';
-  CITIES.forEach((city, i) => {
-    const btn = document.createElement('button');
+  CITIES.forEach(function(city, i) {
+    var btn = document.createElement('button');
     btn.className = 'city-btn' + (i === currentCity ? ' active' : '');
     btn.textContent = city.name;
-    btn.onclick = async () => {
+    btn.onclick = async function() {
       currentCity = i;
-      document.querySelectorAll('.city-btn').forEach(b => b.classList.remove('active'));
+      var btns = document.querySelectorAll('.city-btn');
+      for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
       btn.classList.add('active');
       await refreshWidget(currentDisplayDate);
     };
@@ -2692,12 +2588,12 @@ function startCountdownTimer(){
 
 document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
 document.getElementById('saveImageBtn').addEventListener('click', showSaveDialog);
-document.getElementById('testAudioBtn').addEventListener('click', () => playAlert('اختبار'));
+document.getElementById('testAudioBtn').addEventListener('click', function() { playAlert('اختبار'); });
 
 async function shareWebsiteLink() {
-    const websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
-    const shareTitle = 'التقويم الإسلامي - مواقيت الصلاة';
-    const shareText = 'تطبيق رائع لمواقيت الصلاة والتقويم الهجري والميلادي';
+    var websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
+    var shareTitle = 'التقويم الإسلامي - مواقيت الصلاة';
+    var shareText = 'تطبيق رائع لمواقيت الصلاة والتقويم الهجري والميلادي';
     if (navigator.share) {
         try {
             await navigator.share({ title: shareTitle, text: shareText, url: websiteUrl });
@@ -2710,17 +2606,17 @@ async function shareWebsiteLink() {
 }
 
 function fallbackCopyLink() {
-    const websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
-    navigator.clipboard.writeText(websiteUrl).then(() => {
+    var websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
+    navigator.clipboard.writeText(websiteUrl).then(function() {
         showToast('تم نسخ رابط الموقع 📋');
-    }).catch(() => {
+    }).catch(function() {
         alert('يمكنك نسخ الرابط يدويًا: ' + websiteUrl);
     });
 }
 
 document.getElementById('shareWebsiteBtn').addEventListener('click', shareWebsiteLink);
 
-// ======================== إدارة تحديثات PWA بشكل مثالي ========================
+// ======================== إدارة تحديثات PWA ========================
 
 function registerServiceWorkerWithUpdate() {
     if (!('serviceWorker' in navigator)) {
@@ -2728,50 +2624,26 @@ function registerServiceWorkerWithUpdate() {
         return;
     }
 
-    window.addEventListener('load', async () => {
+    window.addEventListener('load', async function() {
         try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            var registration = await navigator.serviceWorker.register('/sw.js');
             console.log('✅ Service Worker تم تسجيله بنجاح:', registration);
 
             function showUpdateNotification(worker) {
-                const updateOverlay = document.createElement('div');
-                updateOverlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.8);
-                    backdrop-filter: blur(5px);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 10000;
-                    font-family: 'Cairo', sans-serif;
-                    direction: rtl;
-                `;
+                var updateOverlay = document.createElement('div');
+                updateOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:10000;font-family:"Cairo",sans-serif;direction:rtl;';
                 
-                updateOverlay.innerHTML = `
-                    <div style="background: white; border-radius: 24px; padding: 24px; max-width: 320px; text-align: center; animation: slideUp 0.3s ease;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
-                        <h3 style="margin-bottom: 12px; color: #1a3a6b;">تحديث متاح!</h3>
-                        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">نسخة جديدة من التطبيق متاحة. هل تريد التحديث الآن؟</p>
-                        <div style="display: flex; gap: 12px;">
-                            <button id="updateConfirm" style="flex: 1; background: #1a3a6b; color: white; border: none; padding: 10px; border-radius: 40px; cursor: pointer; font-weight: 600;">✅ تحديث الآن</button>
-                            <button id="updateLater" style="flex: 1; background: #eef2f9; color: #1a3a6b; border: none; padding: 10px; border-radius: 40px; cursor: pointer; font-weight: 600;">⏰ لاحقاً</button>
-                        </div>
-                    </div>
-                `;
+                updateOverlay.innerHTML = '<div style="background:white;border-radius:24px;padding:24px;max-width:320px;text-align:center;animation:slideUp 0.3s ease;"><div style="font-size:48px;margin-bottom:16px;">🔄</div><h3 style="margin-bottom:12px;color:#1a3a6b;">تحديث متاح!</h3><p style="margin-bottom:20px;color:#666;font-size:14px;">نسخة جديدة من التطبيق متاحة. هل تريد التحديث الآن؟</p><div style="display:flex;gap:12px;"><button id="updateConfirm" style="flex:1;background:#1a3a6b;color:white;border:none;padding:10px;border-radius:40px;cursor:pointer;font-weight:600;">✅ تحديث الآن</button><button id="updateLater" style="flex:1;background:#eef2f9;color:#1a3a6b;border:none;padding:10px;border-radius:40px;cursor:pointer;font-weight:600;">⏰ لاحقاً</button></div></div>';
                 
                 document.body.appendChild(updateOverlay);
                 
-                document.getElementById('updateConfirm').addEventListener('click', () => {
+                document.getElementById('updateConfirm').addEventListener('click', function() {
                     worker.postMessage({ type: 'SKIP_WAITING' });
                     updateOverlay.remove();
                     window.location.reload();
                 });
                 
-                document.getElementById('updateLater').addEventListener('click', () => {
+                document.getElementById('updateLater').addEventListener('click', function() {
                     updateOverlay.remove();
                 });
             }
@@ -2780,11 +2652,11 @@ function registerServiceWorkerWithUpdate() {
                 showUpdateNotification(registration.waiting);
             }
 
-            registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
+            registration.addEventListener('updatefound', function() {
+                var newWorker = registration.installing;
                 console.log('🆕 تم اكتشاف نسخة جديدة من Service Worker');
                 
-                newWorker.addEventListener('statechange', () => {
+                newWorker.addEventListener('statechange', function() {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                         console.log('📢 نسخة جديدة جاهزة للتحديث');
                         showUpdateNotification(newWorker);
@@ -2792,7 +2664,7 @@ function registerServiceWorkerWithUpdate() {
                 });
             });
 
-            setInterval(() => {
+            setInterval(function() {
                 registration.update();
                 console.log('🔄 جاري التحقق من وجود تحديثات...');
             }, 60 * 60 * 1000);
@@ -2803,10 +2675,12 @@ function registerServiceWorkerWithUpdate() {
     });
 }
 
-navigator.serviceWorker?.addEventListener('controllerchange', () => {
-    console.log('🔄 تم تغيير Service Worker، إعادة تحميل الصفحة');
-    window.location.reload();
-});
+if (navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+        console.log('🔄 تم تغيير Service Worker، إعادة تحميل الصفحة');
+        window.location.reload();
+    });
+}
 
 registerServiceWorkerWithUpdate();
 
@@ -2817,7 +2691,7 @@ startCountdownTimer();
 refreshWidget(new Date());
 setInterval(checkAutoTheme,60000);
 checkAutoTheme();
-setInterval(() => { loadWeather(); }, 600000);
+setInterval(function() { loadWeather(); }, 600000);
 loadSettings();
 setupSettingsEvents();
 </script>
