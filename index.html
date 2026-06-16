@@ -989,7 +989,7 @@ async function updatePrayerDisplay() {
   cityCell.style.cursor = 'pointer';
   cityCell.style.backgroundColor = '#f8fafd';
   cityCell.style.fontWeight = '800';
-  cityCell.onclick = function() { openDrawer(); };
+  cityCell.onclick = showCitySelectionPopup;
   cityCell.title = 'اضغط لاختيار مدينة أخرى من الإعدادات';
   var rawData = await fetchPrayerTimesRaw(date, city);
   if (rawData && rawData.timings) {  
@@ -1005,7 +1005,38 @@ async function updatePrayerDisplay() {
     for (var i = 1; i <= 6; i++) row.insertCell(i).innerHTML = '<span>--:--</span>';
   }
 }
-
+function showCitySelectionPopup() {
+    var existing = document.querySelector('.city-popup-overlay');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.className = 'city-popup-overlay';
+    var card = document.createElement('div');
+    card.className = 'city-popup-card';
+    card.innerHTML = '<div class="city-popup-header">📍 اختر مدينة</div><div class="city-list" id="cityList"></div><button class="city-close-btn" id="closeCityPopup">✕ إغلاق</button>';
+    var cityList = card.querySelector('#cityList');
+    CITIES_LIST.forEach(function(city, index) {
+        var option = document.createElement('div');
+        option.className = 'city-option';
+        option.textContent = city.name;
+        option.onclick = async function() {
+            currentCity = index;
+            // تحديث شريط المدن العلوي
+            var btns = document.querySelectorAll('.city-btn');
+            for (var j = 0; j < btns.length; j++) {
+                btns[j].classList.remove('active');
+                if (j === index) btns[j].classList.add('active');
+            }
+            await refreshWidget(currentDisplayDate);
+            localStorage.setItem('selected_city', city.name);
+            overlay.remove();
+        };
+        cityList.appendChild(option);
+    });
+    card.querySelector('#closeCityPopup').onclick = function() { overlay.remove(); };
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
 function fmtTimeWithOffset(t24, offset) {
     var total = getAdjustedMinutes(t24, offset);
     if (total === null) return '--:--';
