@@ -101,14 +101,48 @@
   .date-year { font-family: 'Cairo', sans-serif; font-size: clamp(12px, 4vmin, 18px); font-weight: 800; color: #1a3a6b; }
   .gregorian-line { display: flex; align-items: center;
                    justify-content: center;
-                   gap: 7%; margin: 0.5% 0 1%;
+                   gap: 5%; margin: 0.5% 0 1%;
                    font-size: clamp(9px, 5vmin, 14px);
                    color: #1a3a6b; font-weight: 700; cursor: pointer; }
   .gregorian-line .badge { background: #1a3a6b; color: white; border: 1px solid #1a3a6b; padding: 0.3% 5%; border-radius: 30px; white-space: nowrap; direction: ltr; display: inline-block; }
   .gregorian-line .coptic { border: 1px solid #1a3a6b; padding: 0.3% 5%; border-radius: 30px; white-space: nowrap; }
-  .back-to-today-btn { background: #f0c040; color: #1a3a6b; border: none; padding: 4px 12px; border-radius: 30px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; font-family: 'Cairo', sans-serif; white-space: nowrap; }
-  .back-to-today-btn:hover { transform: translateY(-2px); background: #e5b830; }
-  body.dark-mode .back-to-today-btn { background: #2a5298; color: #ffecb3; }
+  .back-to-today-btn {
+    background: #f0c040;
+    color: #1a3a6b;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Cairo', sans-serif;
+    white-space: nowrap;
+    visibility: visible;
+    opacity: 1;
+    width: auto;
+}
+
+.back-to-today-btn.hidden {
+    visibility: hidden;
+    opacity: 0;
+    cursor: default;
+    pointer-events: none;
+}
+
+.back-to-today-btn:hover {
+    transform: translateY(-2px);
+    background: #e5b830;
+}
+
+body.dark-mode .back-to-today-btn {
+    background: #2a5298;
+    color: #ffecb3;
+}
+
+body.dark-mode .back-to-today-btn:hover {
+    background: #1a3a6b;
+}  body.dark-mode .back-to-today-btn { background: #2a5298; color: #ffecb3; }
   body.dark-mode .back-to-today-btn:hover { background: #1a3a6b; }
   
   .table-footer-container { margin-top: 2vw; flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 1%; }
@@ -279,9 +313,9 @@
   </div>
   <div class="gregorian-line clickable-date" id="gregLine">
     <span class="badge" id="gregLineFull">...</span>
-   <button id="backToTodayBtn" class="back-to-today-btn" style="display: none;" title="العودة إلى اليوم">📅 اليوم</button>
+   <button id="backToTodayBtn" class="back-to-today-btn hidden" style="display: none;" title="العودة إلى اليوم">📅 اليوم</button>
     <span id="copticSpan" class="coptic">...</span>
-    >
+   
   </div>
 
   <div id="nextPrayerSection">
@@ -732,7 +766,13 @@ function updateBackToTodayButton() {
     const today = new Date();
     const isTodayDate = currentDisplayDate.toDateString() === today.toDateString();
     const backBtn = document.getElementById('backToTodayBtn');
-    if (backBtn) { backBtn.style.display = isTodayDate ? 'none' : 'inline-flex'; }
+    if (backBtn) { 
+        if (isTodayDate) {
+            backBtn.classList.add('hidden');
+        } else {
+            backBtn.classList.remove('hidden');
+        }
+    }
 }
 
 async function goBackToToday() {
