@@ -1418,7 +1418,7 @@ function registerServiceWorkerWithUpdate() {
     if (!('serviceWorker' in navigator)) { console.log('⚠️ المتصفح لا يدعم Service Worker'); return; }
     window.addEventListener('load', async function() {
         try {
-            var registration = await navigator.serviceWorker.register('/sw.js');
+            var registration = await navigator.serviceWorker.register('./sw.js');
             console.log('✅ Service Worker تم تسجيله بنجاح:', registration);
             function showUpdateNotification(worker) {
                 var updateOverlay = document.createElement('div');
