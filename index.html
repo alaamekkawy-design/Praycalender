@@ -1441,7 +1441,7 @@
           <th>عصر</th>
           <th>مغرب</th>
           <th>عشاء</th>
-        </tr>
+        </table>
       </thead>
       <tbody id="prayerBody"></tbody>
     </table>
@@ -1479,9 +1479,9 @@
       <div class="settings-section">
         <div class="section-title">🔊 الأذان</div>
         <div class="azan-options">
-          <label><input type="radio" name="azan" value="0"> أذان مكة</label>
-          <label><input type="radio" name="azan" value="1"> أذان المدينة</label>
-          <label><input type="radio" name="azan" value="2"> أذان مصر</label>
+          <label><input type="radio" name="azan" value="0">النقشبندي</label>
+          <label><input type="radio" name="azan" value="1">محمد رفعت</label>
+          <label><input type="radio" name="azan" value="2">طوبار</label>
         </div>
         <button id="testAzanSettingsBtn" class="test-azan-btn">🔊 اختبار الأذان</button>
       </div>
@@ -1772,19 +1772,54 @@ let selectedAzanIndex = 0;
 function toAr(n) { return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
 function isToday() { const t = new Date(); return currentDisplayDate.toDateString() === t.toDateString(); }
 function getViewDate() { return currentDisplayDate; }
-function toMins(t24, offset) { if(!t24) return null; const parts = t24.slice(0,5).split(':'); if(parts.length<2) return null; const h=parseInt(parts[0],10), m=parseInt(parts[1],10); if(isNaN(h)||isNaN(m)) return null; return h*60+m+(offset||0); }
-function fmtTime(t24, offset) { const total=toMins(t24,offset); if(total===null) return '--:--'; const totalMod=((total%1440)+1440)%1440; const h=Math.floor(totalMod/60), m=totalMod%60; const h12=(h%12)||12; const ampm=h<12?'ص':'م'; return `${h12}:${String(m).padStart(2,'0')} ${ampm}`; }
-function convertTo12HourFormat(time24) { if(!time24||time24==='--:--') return '--:--'; const [hours,minutes]=time24.split(':'); const h=parseInt(hours,10); const h12=(h%12)||12; return `${minutes} ${h12}`; }
+
+// ======================== دوال الإزاحات المصححة ========================
+
+// دالة تطبيق الإزاحة على وقت الصلاة
+function applyOffsetToTime(time24, offsetMinutes) {
+    if (!time24 || time24 === '--:--') return '--:--';
+    const [hours, minutes] = time24.split(':').map(Number);
+    let totalMinutes = hours * 60 + minutes + offsetMinutes;
+    totalMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+    const newHours = Math.floor(totalMinutes / 60);
+    const newMinutes = totalMinutes % 60;
+    return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+}
+
+// دالة تحويل الوقت مع الإزاحة (للعرض في الجدول)
+function convertTo12HourFormatWithOffset(time24, offset) {
+    if (!time24 || time24 === '--:--') return '--:--';
+    const adjustedTime = applyOffsetToTime(time24, offset);
+    const [hours, minutes] = adjustedTime.split(':');
+    const h = parseInt(hours, 10);
+    const h12 = (h % 12) || 12;
+    return `${minutes} ${h12}`;
+}
+
+// دالة حساب الدقائق مع الإزاحة (للكونت داون)
+function getAdjustedMinutes(time24, offset) {
+    if (!time24) return null;
+    const adjustedTime = applyOffsetToTime(time24, offset);
+    const [hours, minutes] = adjustedTime.split(':');
+    const h = parseInt(hours, 10);
+    const m = parseInt(minutes, 10);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+}
+
 function toCoptic(date) { let y=date.getFullYear()-283; let ny=new Date(date.getFullYear(),8,11); if(date<ny) { y--; ny=new Date(date.getFullYear()-1,8,11); } const diff=Math.floor((date-ny)/86400000); const month=Math.floor(diff/30); const day=diff%30+1; return { day, month, year:y }; }
 
-// ======================== دوال الأذان ========================
+// ======================== دوال الأذان المصححة ========================
 let AZAN_URLS_LIST = [
-  'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
-  'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3',
-  'azan2.mp3'
+  /*'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
+  'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3',*/
+ 'azan.mp3'
+ 'azan2.mp3'
+ 'tobar.mp3'
 ];
 
-let azanAudio = null, audioUnlocked = false;
+let currentAudio = null;
+let audioUnlocked = false;
 
 function unlockAudio() { 
   if(audioUnlocked) return; 
@@ -1804,13 +1839,13 @@ document.addEventListener('click', unlockAudio, { once: true });
 document.addEventListener('touchstart', unlockAudio, { once: true });
 
 function stopAzan() { 
-  if(azanAudio) { 
-    azanAudio.pause(); 
-    azanAudio.currentTime=0; 
-    azanAudio=null; 
+  if (currentAudio) { 
+    currentAudio.pause(); 
+    currentAudio.currentTime = 0; 
+    currentAudio = null; 
   } 
-  const ov=document.getElementById('azanOverlay'); 
-  if(ov) ov.remove(); 
+  const ov = document.getElementById('azanOverlay'); 
+  if (ov) ov.remove(); 
 }
 
 function showAzanOverlay(prayerName) {
@@ -1829,40 +1864,55 @@ function showAzanOverlay(prayerName) {
 }
 
 async function playAlert(prayerName) { 
+  // إيقاف أي أذان قيد التشغيل أولاً
+  stopAzan();
+  
   unlockAudio(); 
-  stopAzan(); 
-  showAzanOverlay(prayerName||'الصلاة'); 
-  for(const url of AZAN_URLS_LIST) { 
-    try { 
-      const audio=new Audio(); 
-      audio.volume=1.0; 
-      audio.src=url; 
-      azanAudio=audio; 
-      await audio.play(); 
-      audio.addEventListener('ended',()=>{ 
-        azanAudio=null; 
-        const ol=document.getElementById('azanOverlay'); 
-        if(ol) ol.remove(); 
-      }); 
-      return; 
-    } catch(e){} 
-  } 
+  showAzanOverlay(prayerName || 'الصلاة'); 
+  
+  // استخدام الملف المختار من الإعدادات
+  const selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
+  
   try { 
-    const ctx=new (AudioContext||webkitAudioContext)(); 
-    await ctx.resume(); 
-    [880,660,770,880].forEach((freq,i)=>{ 
-      const o=ctx.createOscillator(); 
-      const g=ctx.createGain(); 
-      o.connect(g); 
-      g.connect(ctx.destination); 
-      o.frequency.value=freq; 
-      const t0=ctx.currentTime+i*0.7; 
-      g.gain.setValueAtTime(0.4,t0); 
-      g.gain.exponentialRampToValueAtTime(0.001,t0+0.6); 
-      o.start(t0); 
-      o.stop(t0+0.6); 
+    const audio = new Audio(); 
+    audio.volume = 1.0; 
+    audio.src = selectedUrl; 
+    currentAudio = audio; 
+    await audio.play(); 
+    audio.addEventListener('ended', () => { 
+      currentAudio = null; 
+      const ol = document.getElementById('azanOverlay'); 
+      if (ol) ol.remove(); 
     }); 
-  } catch(e){} 
+    audio.addEventListener('error', () => {
+      console.error('خطأ في تشغيل الملف الصوتي');
+      stopAzan();
+    });
+    return; 
+  } catch(e) { 
+    console.error('فشل تشغيل الأذان:', e);
+    stopAzan();
+  } 
+}
+
+function testAzanSound() {
+    unlockAudio();
+    const selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
+    const audio = new Audio();
+    audio.volume = 1.0;
+    audio.src = selectedUrl;
+    currentAudio = audio;
+    audio.play().catch(e => console.error('خطأ في تشغيل اختبار الصوت:', e));
+    setTimeout(() => {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+    }, 5000);
 }
 
 function updateCountdown() { 
@@ -1878,14 +1928,17 @@ function updateCountdown() {
   const curMin=now.getHours()*60+now.getMinutes(); 
   const curSec=now.getSeconds(); 
   const t=prayerData.timings; 
+  
+  // استخدام الإزاحات في حساب الوقت
   const list=[
-    {key:'fajr',name:'الفجر',mins:toMins(t.Fajr,0),disp:fmtTime(t.Fajr,0)},
-    {key:'sunrise',name:'الشروق',mins:toMins(t.Sunrise,0),disp:fmtTime(t.Sunrise,0)},
-    {key:'dhuhr',name:'الظهر',mins:toMins(t.Dhuhr,0),disp:fmtTime(t.Dhuhr,0)},
-    {key:'asr',name:'العصر',mins:toMins(t.Asr,0),disp:fmtTime(t.Asr,0)},
-    {key:'maghrib',name:'المغرب',mins:toMins(t.Maghrib,0),disp:fmtTime(t.Maghrib,0)},
-    {key:'isha',name:'العشاء',mins:toMins(t.Isha,0),disp:fmtTime(t.Isha,0)}
+    {key:'fajr',name:'الفجر',mins:getAdjustedMinutes(t.Fajr, prayerOffsets.fajr), disp:fmtTimeWithOffset(t.Fajr, prayerOffsets.fajr)},
+    {key:'sunrise',name:'الشروق',mins:getAdjustedMinutes(t.Sunrise, prayerOffsets.sunrise), disp:fmtTimeWithOffset(t.Sunrise, prayerOffsets.sunrise)},
+    {key:'dhuhr',name:'الظهر',mins:getAdjustedMinutes(t.Dhuhr, prayerOffsets.dhuhr), disp:fmtTimeWithOffset(t.Dhuhr, prayerOffsets.dhuhr)},
+    {key:'asr',name:'العصر',mins:getAdjustedMinutes(t.Asr, prayerOffsets.asr), disp:fmtTimeWithOffset(t.Asr, prayerOffsets.asr)},
+    {key:'maghrib',name:'المغرب',mins:getAdjustedMinutes(t.Maghrib, prayerOffsets.maghrib), disp:fmtTimeWithOffset(t.Maghrib, prayerOffsets.maghrib)},
+    {key:'isha',name:'العشاء',mins:getAdjustedMinutes(t.Isha, prayerOffsets.isha), disp:fmtTimeWithOffset(t.Isha, prayerOffsets.isha)}
   ].filter(p=>p.mins!==null); 
+  
   if(list.length===0) return; 
   const curTotalSec=curMin*60+curSec; 
   let next=list.find(p=>p.mins*60>curTotalSec)||list[0]; 
@@ -1900,6 +1953,17 @@ function updateCountdown() {
     playAlert(next.name); 
   } 
   if(diffSec>60&&alertedFor===next.key) alertedFor=null; 
+}
+
+// دالة مساعدة لـ fmtTime مع الإزاحة
+function fmtTimeWithOffset(t24, offset) {
+    const total = getAdjustedMinutes(t24, offset);
+    if (total === null) return '--:--';
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    const h12 = (h % 12) || 12;
+    const ampm = h < 12 ? 'ص' : 'م';
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
 // ======================== دوال API ========================
@@ -2030,12 +2094,13 @@ async function updatePrayerDisplay() {
   const rawData = await fetchPrayerTimesRaw(date, city);
   if (rawData && rawData.timings) {  
     const t = rawData.timings;
-    row.insertCell(1).innerHTML = `<span>${convertTo12HourFormat(t.Fajr.slice(0,5))}</span>`;
-    row.insertCell(2).innerHTML = `<span>${convertTo12HourFormat(t.Sunrise.slice(0,5))}</span>`;
-    row.insertCell(3).innerHTML = `<span>${convertTo12HourFormat(t.Dhuhr.slice(0,5))}</span>`;
-    row.insertCell(4).innerHTML = `<span>${convertTo12HourFormat(t.Asr.slice(0,5))}</span>`;
-    row.insertCell(5).innerHTML = `<span>${convertTo12HourFormat(t.Maghrib.slice(0,5))}</span>`;
-    row.insertCell(6).innerHTML = `<span>${convertTo12HourFormat(t.Isha.slice(0,5))}</span>`;
+    // استخدام الإزاحات في عرض الوقت
+    row.insertCell(1).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Fajr.slice(0,5), prayerOffsets.fajr)}</span>`;
+    row.insertCell(2).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Sunrise.slice(0,5), prayerOffsets.sunrise)}</span>`;
+    row.insertCell(3).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Dhuhr.slice(0,5), prayerOffsets.dhuhr)}</span>`;
+    row.insertCell(4).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Asr.slice(0,5), prayerOffsets.asr)}</span>`;
+    row.insertCell(5).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Maghrib.slice(0,5), prayerOffsets.maghrib)}</span>`;
+    row.insertCell(6).innerHTML = `<span>${convertTo12HourFormatWithOffset(t.Isha.slice(0,5), prayerOffsets.isha)}</span>`;
     prayerData = rawData;
   } else {
     row.insertCell(1).innerHTML = '<span>--:--</span>';
@@ -2277,14 +2342,14 @@ async function saveAsImage(withZodiac) {
     tableHtml += `<td style="font-weight:800;">${cityData.name}</td>`;
     if (cityRaw && cityRaw.timings) {
       const t = cityRaw.timings;
-      tableHtml += `<td>${convertTo12HourFormat(t.Fajr.slice(0,5))}</td>`;
-      tableHtml += `<td>${convertTo12HourFormat(t.Sunrise.slice(0,5))}</td>`;
-      tableHtml += `<td>${convertTo12HourFormat(t.Dhuhr.slice(0,5))}</td>`;
-      tableHtml += `<td>${convertTo12HourFormat(t.Asr.slice(0,5))}</td>`;
-      tableHtml += `<td>${convertTo12HourFormat(t.Maghrib.slice(0,5))}</td>`;
-      tableHtml += `<td>${convertTo12HourFormat(t.Isha.slice(0,5))}</td>`;
+      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Fajr.slice(0,5), prayerOffsets.fajr)}<\/td>`;
+      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Sunrise.slice(0,5), prayerOffsets.sunrise)}<\/td>`;
+      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Dhuhr.slice(0,5), prayerOffsets.dhuhr)}<\/td>`;
+      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Asr.slice(0,5), prayerOffsets.asr)}<\/td>`;
+      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Maghrib.slice(0,5), prayerOffsets.maghrib)}<\/td>`;
+      tableHtml += `<td>${convertTo12HourFormatWithOffset(t.Isha.slice(0,5), prayerOffsets.isha)}<\/td>`;
     } else {
-      for (let j = 0; j < 6; j++) tableHtml += `<td>--:--</td>`;
+      for (let j = 0; j < 6; j++) tableHtml += `<td>--:--<\/td>`;
     }
     tableHtml += `</tr>`;
   }
@@ -2473,8 +2538,8 @@ function isDarkTime(){
   } 
   const now=new Date(); 
   const cur=now.getHours()*60+now.getMinutes(); 
-  const maghrib=toMins(prayerData.timings.Maghrib,0); 
-  const fajr=toMins(prayerData.timings.Fajr,0); 
+  const maghrib=getAdjustedMinutes(prayerData.timings.Maghrib, prayerOffsets.maghrib);
+  const fajr=getAdjustedMinutes(prayerData.timings.Fajr, prayerOffsets.fajr);
   if(maghrib===null||fajr===null) return false; 
   return cur>=maghrib||cur<fajr; 
 }
@@ -2582,7 +2647,7 @@ function setupSettingsEvents() {
   });
   
   document.getElementById('testAzanSettingsBtn').addEventListener('click', () => {
-    playAlert('اختبار');
+    testAzanSound();
   });
 }
 
