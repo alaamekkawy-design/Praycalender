@@ -523,9 +523,9 @@
       <div class="settings-section">
         <div class="section-title">🔊 الأذان</div>
         <div class="azan-options">
-          <label><input type="radio" name="azan" value="0"> أذان مكة</label>
-          <label><input type="radio" name="azan" value="1"> أذان المدينة</label>
-          <label><input type="radio" name="azan" value="2"> أذان مصر</label>
+          <label><input type="radio" name="azan" value="0"> أذان نقشبندي</label>
+          <label><input type="radio" name="azan" value="1"> أذان رفعت</label>
+          <label><input type="radio" name="azan" value="2"> أذان طوبار</label>
         </div>
         <button id="testAzanSettingsBtn" class="test-azan-btn">🔊 اختبار الأذان</button>
       </div>
@@ -734,9 +734,12 @@ function toCoptic(date) { var y = date.getFullYear() - 283; var ny = new Date(da
 
 // ======================== دوال الأذان ========================
 var AZAN_URLS_LIST = [
-  'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
-  'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3',
-  'azan2.mp3'
+  /*'https://ia800203.us.archive.org/33/items/AzanFajrPrayerFromTheHolyMosqueInMecca/Azan_Fajr_-_Holy_Mosque_Mecca.mp3',
+  'https://ia800506.us.archive.org/8/items/azan2_201511/azan2.mp3',*/
+ 'azan.mp3',
+ 'azan2.mp3',
+ 'tobar.mp3'
+  'azan3.mp3'
 ];
 
 var currentAudio = null;
