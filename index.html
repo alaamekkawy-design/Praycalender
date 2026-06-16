@@ -20,10 +20,47 @@
   html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
   body { background: #ffffff; display: flex; justify-content: center; align-items: center; font-family: 'Cairo', sans-serif; }
   .widget { background: #ffffff; width: 100%; height: 100%; border-radius: 12px; overflow-y: auto; overflow-x: hidden; border: 1px solid #b0bfcf; padding: 12px; display: flex; flex-direction: column; position: relative; }
-  .top-buttons { position: absolute; top: 8px; right: 8px; left: 8px; display: flex; justify-content: flex-end; z-index: 10; }
-  #settingsBtn { background: none; border: none; font-size: 22px; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; padding: 4px 8px; color: #1a3a6b; }
+ .top-buttons {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+ #settingsBtn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    padding: 4px 8px;
+    color: #1a3a6b;
+    order: 0;
+}
+
+#darkToggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    padding: 4px 8px;
+    order: 2;
+}
+  #settingsBtn { background: none;
+                border: none;
+                font-size: 22px;
+                cursor: pointer;
+                opacity: 0.6;
+                transition: opacity 0.2s;
+                padding: 4px 8px; color: #1a3a6b; }
   #settingsBtn:hover { opacity: 1; }
-  #darkToggle { background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; padding: 4px 8px; }
+ 
   #darkToggle:hover { opacity: 1; }
   body.dark-mode #settingsBtn { color: #a8c8f0; }
   
