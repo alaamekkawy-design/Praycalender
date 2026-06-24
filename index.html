@@ -660,7 +660,7 @@ body.dark-mode .offset-input:focus {
     
     <div class="footer">
       <button class="icon-btn" id="shareWebsiteBtn" title="مشاركة الرابط">🔗</button>
-      <span onclick="location.reload();" style="cursor:pointer; font-family:'Sacramento', cursive; font-size:24px; font-weight:normal;" title="ريفرش">by mekkawy</span>
+      <span id="footerRefreshBtn" style="cursor:pointer; font-family:'Sacramento', cursive; font-size:24px; font-weight:normal;" title="تحديث التطبيق">by mekkawy</span>
       <button class="icon-btn" id="saveImageBtn" title="حفظ كصورة">📸</button>
       <button class="icon-btn" id="locationFooterBtn" title="الموقع">📍</button>
     </div>
@@ -945,7 +945,7 @@ function getAdjustedMinutes(time24, offset) {
 
 function toCoptic(date) { var y = date.getFullYear() - 283; var ny = new Date(date.getFullYear(), 8, 11); if (date < ny) { y--; ny = new Date(date.getFullYear() - 1, 8, 11); } var diff = Math.floor((date - ny) / 86400000); var month = Math.floor(diff / 30); var day = diff % 30 + 1; return { day: day, month: month, year: y }; }
 
-// ======================== دوال الأذان (تم تعديلها لمنع التكرار) ========================
+// ======================== دوال الأذان ========================
 var AZAN_URLS_LIST = [
  'azan.mp3',
  'azan2.mp3',
@@ -953,10 +953,10 @@ var AZAN_URLS_LIST = [
   'azan3.mp3',
  '14.mp3'
 ];
-var testAudio = null;
 var currentAudio = null;
 var audioUnlocked = false;
 var isAudioPlaying = false;
+var azanOverlay = null;
 
 function unlockAudio() { 
   if(audioUnlocked) return; 
@@ -975,20 +975,25 @@ function unlockAudio() {
 document.addEventListener('click', unlockAudio, { once: true });
 document.addEventListener('touchstart', unlockAudio, { once: true });
 
+// دالة إيقاف الصوت بالكامل
 function stopAzan() { 
+  console.log('🛑 إيقاف الصوت');
   if (currentAudio) { 
-    currentAudio.pause(); 
-    currentAudio.currentTime = 0; 
-    currentAudio = null; 
-  }
-  if (testAudio) {
-    testAudio.pause();
-    testAudio.currentTime = 0;
-    testAudio = null;
+    try {
+      currentAudio.pause(); 
+      currentAudio.currentTime = 0; 
+      currentAudio = null; 
+    } catch(e) {}
   }
   isAudioPlaying = false;
-  var ov = document.getElementById('azanOverlay'); 
-  if (ov) ov.remove(); 
+  
+  // إزالة الـ Overlay
+  if (azanOverlay) {
+    try {
+      document.body.removeChild(azanOverlay);
+    } catch(e) {}
+    azanOverlay = null;
+  }
   
   // إعادة تعيين زر الاختبار إذا كان مفتوحاً
   const testBtn = document.getElementById('testAzanSettingsBtn');
@@ -997,112 +1002,134 @@ function stopAzan() {
   }
 }
 
+// دالة عرض الـ Overlay
 function showAzanOverlay(prayerName) {
-  var existingOverlay = document.getElementById('azanOverlay'); 
-  if(existingOverlay) existingOverlay.remove();
+  // إزالة أي Overlay سابق
+  if (azanOverlay) {
+    try { document.body.removeChild(azanOverlay); } catch(e) {}
+    azanOverlay = null;
+  }
+  
   var overlay = document.createElement('div'); 
   overlay.id = 'azanOverlay'; 
   overlay.innerHTML = '<div class="azan-card"><div class="azan-icon">🕌</div><div class="azan-label">حان وقت صلاة</div><div class="azan-name">' + prayerName + '</div><button id="stopAzanBtn" class="azan-stop-btn">⏹ إيقاف الأذان</button></div>';
   document.body.appendChild(overlay);
+  azanOverlay = overlay;
+  
   var stopBtn = document.getElementById('stopAzanBtn'); 
   if(stopBtn) { 
-    stopBtn.addEventListener('click', stopAzan); 
-    stopBtn.addEventListener('touchstart', function(e){ e.preventDefault(); stopAzan(); }); 
-  }
-  overlay.addEventListener('click', function(e){ if(e.target === overlay) stopAzan(); });
-}
-
-// دالة تشغيل الأذان - تعمل مرة واحدة فقط
-async function playAlert(prayerName) { 
-  // منع التشغيل إذا كان هناك صوت قيد التشغيل
-  if (isAudioPlaying) {
-    console.log('الصوت قيد التشغيل بالفعل، يتم تجاهل الطلب');
-    return;
-  }
-  
-  // إيقاف أي صوت سابق
-  stopAzan();
-  unlockAudio(); 
-  
-  // عرض الـ Overlay
-  showAzanOverlay(prayerName || 'الصلاة'); 
-  
-  var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
-  try { 
-    var audio = new Audio(); 
-    audio.volume = 1.0; 
-    audio.src = selectedUrl; 
-    currentAudio = audio;
-    isAudioPlaying = true;
-    
-    // تشغيل الصوت
-    await audio.play(); 
-    
-    // عند انتهاء الصوت، نقوم بتنظيف المتغيرات وإغلاق الـ Overlay
-    audio.addEventListener('ended', function() { 
-      currentAudio = null;
-      isAudioPlaying = false;
-      var ol = document.getElementById('azanOverlay'); 
-      if (ol) ol.remove(); 
+    stopBtn.addEventListener('click', function(e) { 
+      e.preventDefault(); 
+      stopAzan(); 
     }); 
-    audio.addEventListener('error', function() {
-      console.error('خطأ في تشغيل الملف الصوتي');
-      isAudioPlaying = false;
-      stopAzan();
-    });
-    return; 
-  } catch(e) { 
-    console.error('فشل تشغيل الأذان:', e);
-    isAudioPlaying = false;
-    stopAzan();
-  } 
+  }
+  overlay.addEventListener('click', function(e){ 
+    if(e.target === overlay) stopAzan(); 
+  });
 }
 
-// دالة اختبار الصوت - تعمل مرة واحدة فقط
-function testAzanSound() {
+// الدالة الرئيسية لتشغيل الصوت - تعمل مرة واحدة وتتوقف تلقائياً
+function playSoundOnce(url, onComplete) {
     // منع التشغيل إذا كان هناك صوت قيد التشغيل
     if (isAudioPlaying) {
-      stopAzan();
-      return;
+        console.log('⚠️ الصوت قيد التشغيل بالفعل، يتم تجاهل الطلب');
+        return;
     }
     
+    // إيقاف أي صوت سابق
+    stopAzan();
     unlockAudio();
     
-    // إذا كان هناك صوت اختبار قيد التشغيل، أوقفه
-    if (testAudio) {
+    try {
+        console.log('🔊 تشغيل الصوت:', url);
+        var audio = new Audio();
+        audio.volume = 1.0;
+        audio.src = url;
+        currentAudio = audio;
+        isAudioPlaying = true;
+        
+        // بدء التشغيل
+        audio.play().then(function() {
+            console.log('✅ بدء تشغيل الصوت بنجاح');
+        }).catch(function(e) {
+            console.error('❌ فشل تشغيل الصوت:', e);
+            isAudioPlaying = false;
+            currentAudio = null;
+            if (onComplete) onComplete(false);
+        });
+        
+        // عند انتهاء الصوت - توقف تلقائياً
+        audio.addEventListener('ended', function() {
+            console.log('⏹ انتهى الصوت تلقائياً');
+            stopAzan();
+            if (onComplete) onComplete(true);
+        });
+        
+        // في حالة حدوث خطأ
+        audio.addEventListener('error', function(e) {
+            console.error('❌ خطأ في الصوت:', e);
+            stopAzan();
+            if (onComplete) onComplete(false);
+        });
+        
+    } catch(e) {
+        console.error('❌ خطأ في إنشاء الصوت:', e);
+        isAudioPlaying = false;
+        currentAudio = null;
+        if (onComplete) onComplete(false);
+    }
+}
+
+// دالة تشغيل الأذان (مرة واحدة)
+function playAlert(prayerName) { 
+    console.log('🕌 تشغيل أذان:', prayerName);
+    // إيقاف أي صوت سابق
+    stopAzan();
+    
+    // عرض الـ Overlay
+    showAzanOverlay(prayerName || 'الصلاة'); 
+    
+    var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
+    
+    // تشغيل الصوت مع دالة عند الانتهاء
+    playSoundOnce(selectedUrl, function(success) {
+        console.log('✅ انتهى تشغيل الأذان، النجاح:', success);
+        // عند الانتهاء، تأكد من إزالة الـ Overlay
+        if (azanOverlay) {
+            try { document.body.removeChild(azanOverlay); } catch(e) {}
+            azanOverlay = null;
+        }
+        isAudioPlaying = false;
+        currentAudio = null;
+    });
+}
+
+// دالة اختبار الصوت (مرة واحدة)
+function testAzanSound() {
+    console.log('🔊 اختبار الأذان');
+    // إذا كان هناك صوت قيد التشغيل، أوقفه
+    if (isAudioPlaying) {
         stopAzan();
         return;
     }
     
     var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
-    testAudio = new Audio();
-    testAudio.volume = 1.0;
-    testAudio.src = selectedUrl;
-    isAudioPlaying = true;
-    
-    // تشغيل الصوت
-    testAudio.play().catch(function(e) { 
-      console.error('خطأ:', e);
-      isAudioPlaying = false;
-      testAudio = null;
-    });
     
     // تغيير نص الزر إلى "⏹ إيقاف"
     const testBtn = document.getElementById('testAzanSettingsBtn');
     if (testBtn) testBtn.innerHTML = '⏹ إيقاف';
     
-    // عند انتهاء الصوت، إعادة الزر إلى حالته الطبيعية
-    testAudio.addEventListener('ended', function() {
-        testAudio = null;
+    // تشغيل الصوت مع دالة عند الانتهاء
+    playSoundOnce(selectedUrl, function(success) {
+        console.log('✅ انتهى اختبار الصوت، النجاح:', success);
+        // إعادة الزر إلى حالته الطبيعية
+        const btn = document.getElementById('testAzanSettingsBtn');
+        if (btn) btn.innerHTML = '🔊 اختبار الأذان';
         isAudioPlaying = false;
-        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
-    });
-    
-    testAudio.addEventListener('error', function() {
-        testAudio = null;
-        isAudioPlaying = false;
-        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
-        showToast('حدث خطأ في تشغيل الصوت');
+        currentAudio = null;
+        if (!success) {
+            showToast('حدث خطأ في تشغيل الصوت');
+        }
     });
 }
 
@@ -1722,6 +1749,37 @@ function fallbackCopyLink() {
 
 document.getElementById('shareWebsiteBtn').addEventListener('click', shareWebsiteLink);
 
+// ======================== دالة تحديث التطبيق عند الضغط على "Mekkawy" ========================
+function forceAppUpdate() {
+    console.log('🔄 جاري تحديث التطبيق...');
+    showToast('🔄 جاري تحديث التطبيق...');
+    
+    // محاولة تنشيط Service Worker الجديد إذا كان موجوداً
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(function(registration) {
+            // إذا كان هناك Service Worker في انتظار التنشيط
+            if (registration.waiting) {
+                console.log('📢 تنشيط Service Worker الجديد');
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+            
+            // إعادة تحميل الصفحة مع تخطي ذاكرة التخزين المؤقت
+            setTimeout(function() {
+                window.location.reload(true);
+            }, 500);
+        }).catch(function() {
+            // إذا فشل، نقوم بإعادة تحميل الصفحة مباشرة
+            window.location.reload(true);
+        });
+    } else {
+        // إذا لم يكن هناك Service Worker، نقوم بإعادة تحميل الصفحة مباشرة
+        window.location.reload(true);
+    }
+}
+
+// ربط زر التحديث في الفوتر
+document.getElementById('footerRefreshBtn').addEventListener('click', forceAppUpdate);
+
 function registerServiceWorkerWithUpdate() {
     if (!('serviceWorker' in navigator)) { console.log('⚠️ المتصفح لا يدعم Service Worker'); return; }
     window.addEventListener('load', async function() {
@@ -1733,7 +1791,11 @@ function registerServiceWorkerWithUpdate() {
                 updateOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:10000;font-family:"Cairo",sans-serif;direction:rtl;';
                 updateOverlay.innerHTML = '<div style="background:white;border-radius:24px;padding:24px;max-width:320px;text-align:center;animation:slideUp 0.3s ease;"><div style="font-size:48px;margin-bottom:16px;">🔄</div><h3 style="margin-bottom:12px;color:#1a3a6b;">تحديث متاح!</h3><p style="margin-bottom:20px;color:#666;font-size:14px;">نسخة جديدة من التطبيق متاحة. هل تريد التحديث الآن؟</p><div style="display:flex;gap:12px;"><button id="updateConfirm" style="flex:1;background:#1a3a6b;color:white;border:none;padding:10px;border-radius:40px;cursor:pointer;font-weight:600;">✅ تحديث الآن</button><button id="updateLater" style="flex:1;background:#eef2f9;color:#1a3a6b;border:none;padding:10px;border-radius:40px;cursor:pointer;font-weight:600;">⏰ لاحقاً</button></div></div>';
                 document.body.appendChild(updateOverlay);
-                document.getElementById('updateConfirm').addEventListener('click', function() { worker.postMessage({ type: 'SKIP_WAITING' }); updateOverlay.remove(); window.location.reload(); });
+                document.getElementById('updateConfirm').addEventListener('click', function() { 
+                    worker.postMessage({ type: 'SKIP_WAITING' }); 
+                    updateOverlay.remove(); 
+                    window.location.reload(true);
+                });
                 document.getElementById('updateLater').addEventListener('click', function() { updateOverlay.remove(); });
             }
             if (registration.waiting) { showUpdateNotification(registration.waiting); }
@@ -1741,14 +1803,20 @@ function registerServiceWorkerWithUpdate() {
                 var newWorker = registration.installing;
                 console.log('🆕 تم اكتشاف نسخة جديدة من Service Worker');
                 newWorker.addEventListener('statechange', function() {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { console.log('📢 نسخة جديدة جاهزة للتحديث'); showUpdateNotification(newWorker); }
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { 
+                        console.log('📢 نسخة جديدة جاهزة للتحديث'); 
+                        showUpdateNotification(newWorker); 
+                    }
                 });
             });
-            setInterval(function() { registration.update(); console.log('🔄 جاري التحقق من وجود تحديثات...'); }, 60 * 60 * 1000);
+            setInterval(function() { 
+                registration.update(); 
+                console.log('🔄 جاري التحقق من وجود تحديثات...'); 
+            }, 60 * 60 * 1000);
         } catch (error) { console.error('❌ فشل تسجيل Service Worker:', error); }
     });
 }
-if (navigator.serviceWorker) { navigator.serviceWorker.addEventListener('controllerchange', function() { console.log('🔄 تم تغيير Service Worker، إعادة تحميل الصفحة'); window.location.reload(); }); }
+if (navigator.serviceWorker) { navigator.serviceWorker.addEventListener('controllerchange', function() { console.log('🔄 تم تغيير Service Worker، إعادة تحميل الصفحة'); window.location.reload(true); }); }
 registerServiceWorkerWithUpdate();
 
 buildCityBar();
