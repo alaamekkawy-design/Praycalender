@@ -945,7 +945,7 @@ function getAdjustedMinutes(time24, offset) {
 
 function toCoptic(date) { var y = date.getFullYear() - 283; var ny = new Date(date.getFullYear(), 8, 11); if (date < ny) { y--; ny = new Date(date.getFullYear() - 1, 8, 11); } var diff = Math.floor((date - ny) / 86400000); var month = Math.floor(diff / 30); var day = diff % 30 + 1; return { day: day, month: month, year: y }; }
 
-// ======================== دوال الأذان (تم تعديلها لمنع التكرار) ========================
+// ======================== دوال الأذان (إصدار نهائي - يعمل مرة واحدة ويتوقف تلقائياً) ========================
 var AZAN_URLS_LIST = [
  'azan.mp3',
  'azan2.mp3',
@@ -953,7 +953,6 @@ var AZAN_URLS_LIST = [
   'azan3.mp3',
  '14.mp3'
 ];
-var testAudio = null;
 var currentAudio = null;
 var audioUnlocked = false;
 var isAudioPlaying = false;
@@ -975,16 +974,12 @@ function unlockAudio() {
 document.addEventListener('click', unlockAudio, { once: true });
 document.addEventListener('touchstart', unlockAudio, { once: true });
 
+// دالة إيقاف الصوت بالكامل
 function stopAzan() { 
   if (currentAudio) { 
     currentAudio.pause(); 
     currentAudio.currentTime = 0; 
     currentAudio = null; 
-  }
-  if (testAudio) {
-    testAudio.pause();
-    testAudio.currentTime = 0;
-    testAudio = null;
   }
   isAudioPlaying = false;
   var ov = document.getElementById('azanOverlay'); 
@@ -997,6 +992,7 @@ function stopAzan() {
   }
 }
 
+// دالة عرض الـ Overlay
 function showAzanOverlay(prayerName) {
   var existingOverlay = document.getElementById('azanOverlay'); 
   if(existingOverlay) existingOverlay.remove();
@@ -1012,97 +1008,101 @@ function showAzanOverlay(prayerName) {
   overlay.addEventListener('click', function(e){ if(e.target === overlay) stopAzan(); });
 }
 
-// دالة تشغيل الأذان - تعمل مرة واحدة فقط
-async function playAlert(prayerName) { 
-  // منع التشغيل إذا كان هناك صوت قيد التشغيل
-  if (isAudioPlaying) {
-    console.log('الصوت قيد التشغيل بالفعل، يتم تجاهل الطلب');
-    return;
-  }
-  
-  // إيقاف أي صوت سابق
-  stopAzan();
-  unlockAudio(); 
-  
-  // عرض الـ Overlay
-  showAzanOverlay(prayerName || 'الصلاة'); 
-  
-  var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
-  try { 
-    var audio = new Audio(); 
-    audio.volume = 1.0; 
-    audio.src = selectedUrl; 
-    currentAudio = audio;
-    isAudioPlaying = true;
-    
-    // تشغيل الصوت
-    await audio.play(); 
-    
-    // عند انتهاء الصوت، نقوم بتنظيف المتغيرات وإغلاق الـ Overlay
-    audio.addEventListener('ended', function() { 
-      currentAudio = null;
-      isAudioPlaying = false;
-      var ol = document.getElementById('azanOverlay'); 
-      if (ol) ol.remove(); 
-    }); 
-    audio.addEventListener('error', function() {
-      console.error('خطأ في تشغيل الملف الصوتي');
-      isAudioPlaying = false;
-      stopAzan();
-    });
-    return; 
-  } catch(e) { 
-    console.error('فشل تشغيل الأذان:', e);
-    isAudioPlaying = false;
-    stopAzan();
-  } 
-}
-
-// دالة اختبار الصوت - تعمل مرة واحدة فقط
-function testAzanSound() {
+// الدالة الرئيسية لتشغيل الصوت - تعمل مرة واحدة وتتوقف تلقائياً
+function playSoundOnce(url, onComplete) {
     // منع التشغيل إذا كان هناك صوت قيد التشغيل
     if (isAudioPlaying) {
-      stopAzan();
-      return;
+        console.log('الصوت قيد التشغيل بالفعل، يتم تجاهل الطلب');
+        return;
     }
     
+    // إيقاف أي صوت سابق
+    stopAzan();
     unlockAudio();
     
-    // إذا كان هناك صوت اختبار قيد التشغيل، أوقفه
-    if (testAudio) {
+    try {
+        var audio = new Audio();
+        audio.volume = 1.0;
+        audio.src = url;
+        currentAudio = audio;
+        isAudioPlaying = true;
+        
+        // بدء التشغيل
+        audio.play().then(function() {
+            console.log('✅ بدء تشغيل الصوت');
+        }).catch(function(e) {
+            console.error('❌ فشل تشغيل الصوت:', e);
+            isAudioPlaying = false;
+            currentAudio = null;
+            if (onComplete) onComplete(false);
+        });
+        
+        // عند انتهاء الصوت - توقف تلقائياً
+        audio.addEventListener('ended', function() {
+            console.log('⏹ انتهى الصوت تلقائياً');
+            stopAzan();
+            if (onComplete) onComplete(true);
+        });
+        
+        // في حالة حدوث خطأ
+        audio.addEventListener('error', function(e) {
+            console.error('❌ خطأ في الصوت:', e);
+            stopAzan();
+            if (onComplete) onComplete(false);
+        });
+        
+    } catch(e) {
+        console.error('❌ خطأ في إنشاء الصوت:', e);
+        isAudioPlaying = false;
+        currentAudio = null;
+        if (onComplete) onComplete(false);
+    }
+}
+
+// دالة تشغيل الأذان (مرة واحدة)
+async function playAlert(prayerName) { 
+    // إيقاف أي صوت سابق
+    stopAzan();
+    
+    // عرض الـ Overlay
+    showAzanOverlay(prayerName || 'الصلاة'); 
+    
+    var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
+    
+    // تشغيل الصوت مع دالة عند الانتهاء
+    playSoundOnce(selectedUrl, function(success) {
+        // عند الانتهاء، تأكد من إزالة الـ Overlay
+        var ol = document.getElementById('azanOverlay');
+        if (ol) ol.remove();
+        isAudioPlaying = false;
+        currentAudio = null;
+    });
+}
+
+// دالة اختبار الصوت (مرة واحدة)
+function testAzanSound() {
+    // إذا كان هناك صوت قيد التشغيل، أوقفه
+    if (isAudioPlaying) {
         stopAzan();
         return;
     }
     
     var selectedUrl = AZAN_URLS_LIST[selectedAzanIndex] || AZAN_URLS_LIST[0];
-    testAudio = new Audio();
-    testAudio.volume = 1.0;
-    testAudio.src = selectedUrl;
-    isAudioPlaying = true;
-    
-    // تشغيل الصوت
-    testAudio.play().catch(function(e) { 
-      console.error('خطأ:', e);
-      isAudioPlaying = false;
-      testAudio = null;
-    });
     
     // تغيير نص الزر إلى "⏹ إيقاف"
     const testBtn = document.getElementById('testAzanSettingsBtn');
     if (testBtn) testBtn.innerHTML = '⏹ إيقاف';
     
-    // عند انتهاء الصوت، إعادة الزر إلى حالته الطبيعية
-    testAudio.addEventListener('ended', function() {
-        testAudio = null;
+    // تشغيل الصوت مع دالة عند الانتهاء
+    playSoundOnce(selectedUrl, function(success) {
+        // إعادة الزر إلى حالته الطبيعية
+        const btn = document.getElementById('testAzanSettingsBtn');
+        if (btn) btn.innerHTML = '🔊 اختبار الأذان';
         isAudioPlaying = false;
-        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
-    });
-    
-    testAudio.addEventListener('error', function() {
-        testAudio = null;
-        isAudioPlaying = false;
-        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
-        showToast('حدث خطأ في تشغيل الصوت');
+        currentAudio = null;
+        if (!success) {
+            showToast('حدث خطأ في تشغيل الصوت');
+        }
     });
 }
 
