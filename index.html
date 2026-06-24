@@ -248,13 +248,86 @@
   body.dark-mode .test-azan-btn { background: #2a5298; }
   
   .offsets-grid { display: flex; flex-direction: column; gap: 12px; }
-  .offset-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
-  .offset-label { font-weight: 600; width: 70px; font-size: 14px; }
-  .offset-controls { display: flex; align-items: center; gap: 12px; }
-  .offset-minus, .offset-plus { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #1a3a6b; background: white; cursor: pointer; font-size: 20px; font-weight: bold; transition: all 0.2s; color: #1a3a6b; }
+  .offset-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 6px 0; 
+    flex-wrap: wrap; 
+    gap: 8px;
+  }
+  .offset-label { 
+    font-weight: 600; 
+    width: 60px; 
+    font-size: 14px; 
+    flex-shrink: 0;
+  }
+  .offset-controls { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    flex: 1;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .offset-minus, .offset-plus { 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 50%; 
+    border: 1px solid #1a3a6b; 
+    background: white; 
+    cursor: pointer; 
+    font-size: 18px; 
+    font-weight: bold; 
+    transition: all 0.2s; 
+    color: #1a3a6b; 
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .offset-minus:active, .offset-plus:active { transform: scale(0.92); }
-  .offset-value { min-width: 40px; text-align: center; font-size: 18px; font-weight: 700; color: #1a3a6b; }
-  .offset-unit { font-size: 12px; color: #6c86a3; }
+  .offset-value { 
+    min-width: 30px; 
+    text-align: center; 
+    font-size: 16px; 
+    font-weight: 700; 
+    color: #1a3a6b; 
+  }
+  .offset-input {
+    width: 45px;
+    height: 32px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1.5px solid #1a3a6b;
+    border-radius: 8px;
+    background: white;
+    color: #1a3a6b;
+    font-family: 'Cairo', sans-serif;
+    padding: 0 2px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .offset-input:focus {
+    border-color: #2a5298;
+    box-shadow: 0 0 0 2px rgba(26, 58, 107, 0.2);
+  }
+  body.dark-mode .offset-input {
+    background: #0d1a2e;
+    border-color: #2a5298;
+    color: #cde1ff;
+  }
+  body.dark-mode .offset-input:focus {
+    border-color: #4a7ab8;
+    box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.3);
+  }
+  .offset-unit { 
+    font-size: 12px; 
+    color: #6c86a3; 
+    flex-shrink: 0;
+    min-width: 40px;
+  }
   body.dark-mode .offset-minus, body.dark-mode .offset-plus { background: #0d1a2e; border-color: #2a5298; color: #a8c8f0; }
   body.dark-mode .offset-value { color: #cde1ff; }
   
@@ -486,6 +559,35 @@ body.dark-mode .settings-card {
     color: #e8f0ff;
 }
 
+/* تنسيق حقل الإدخال الرقمي في الإعدادات */
+.offset-input {
+    width: 50px;
+    height: 32px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1.5px solid #1a3a6b;
+    border-radius: 6px;
+    background: white;
+    color: #1a3a6b;
+    font-family: 'Cairo', sans-serif;
+    padding: 0 2px;
+    outline: none;
+    transition: all 0.2s;
+}
+.offset-input:focus {
+    border-color: #2a5298;
+    box-shadow: 0 0 0 2px rgba(26, 58, 107, 0.2);
+}
+body.dark-mode .offset-input {
+    background: #0d1a2e;
+    border-color: #2a5298;
+    color: #cde1ff;
+}
+body.dark-mode .offset-input:focus {
+    border-color: #4a7ab8;
+    box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.3);
+}
 
 </style>
 
@@ -596,12 +698,60 @@ body.dark-mode .settings-card {
       <div class="settings-section">
         <div class="section-title">🕐 ضبط مواقيت الصلاة (± دقائق)</div>
         <div class="offsets-grid">
-          <div class="offset-row"><span class="offset-label">الفجر</span><div class="offset-controls"><button class="offset-minus" data-prayer="fajr">−</button><span class="offset-value" id="offsetFajrValue">0</span><button class="offset-plus" data-prayer="fajr">+</button><span class="offset-unit">دقيقة</span></div></div>
-          <div class="offset-row"><span class="offset-label">الشروق</span><div class="offset-controls"><button class="offset-minus" data-prayer="sunrise">−</button><span class="offset-value" id="offsetSunriseValue">0</span><button class="offset-plus" data-prayer="sunrise">+</button><span class="offset-unit">دقيقة</span></div></div>
-          <div class="offset-row"><span class="offset-label">الظهر</span><div class="offset-controls"><button class="offset-minus" data-prayer="dhuhr">−</button><span class="offset-value" id="offsetDhuhrValue">0</span><button class="offset-plus" data-prayer="dhuhr">+</button><span class="offset-unit">دقيقة</span></div></div>
-          <div class="offset-row"><span class="offset-label">العصر</span><div class="offset-controls"><button class="offset-minus" data-prayer="asr">−</button><span class="offset-value" id="offsetAsrValue">0</span><button class="offset-plus" data-prayer="asr">+</button><span class="offset-unit">دقيقة</span></div></div>
-          <div class="offset-row"><span class="offset-label">المغرب</span><div class="offset-controls"><button class="offset-minus" data-prayer="maghrib">−</button><span class="offset-value" id="offsetMaghribValue">0</span><button class="offset-plus" data-prayer="maghrib">+</button><span class="offset-unit">دقيقة</span></div></div>
-          <div class="offset-row"><span class="offset-label">العشاء</span><div class="offset-controls"><button class="offset-minus" data-prayer="isha">−</button><span class="offset-value" id="offsetIshaValue">0</span><button class="offset-plus" data-prayer="isha">+</button><span class="offset-unit">دقيقة</span></div></div>
+          <div class="offset-row">
+            <span class="offset-label">الفجر</span>
+            <div class="offset-controls">
+              <button class="offset-minus" data-prayer="fajr">−</button>
+              <input type="number" class="offset-input" id="offsetInputFajr" value="0" min="-30" max="30">
+              <button class="offset-plus" data-prayer="fajr">+</button>
+              <span class="offset-unit">دقيقة</span>
+            </div>
+          </div>
+          <div class="offset-row">
+            <span class="offset-label">الشروق</span>
+            <div class="offset-controls">
+              <button class="offset-minus" data-prayer="sunrise">−</button>
+              <input type="number" class="offset-input" id="offsetInputSunrise" value="0" min="-30" max="30">
+              <button class="offset-plus" data-prayer="sunrise">+</button>
+              <span class="offset-unit">دقيقة</span>
+            </div>
+          </div>
+          <div class="offset-row">
+            <span class="offset-label">الظهر</span>
+            <div class="offset-controls">
+              <button class="offset-minus" data-prayer="dhuhr">−</button>
+              <input type="number" class="offset-input" id="offsetInputDhuhr" value="0" min="-30" max="30">
+              <button class="offset-plus" data-prayer="dhuhr">+</button>
+              <span class="offset-unit">دقيقة</span>
+            </div>
+          </div>
+          <div class="offset-row">
+            <span class="offset-label">العصر</span>
+            <div class="offset-controls">
+              <button class="offset-minus" data-prayer="asr">−</button>
+              <input type="number" class="offset-input" id="offsetInputAsr" value="0" min="-30" max="30">
+              <button class="offset-plus" data-prayer="asr">+</button>
+              <span class="offset-unit">دقيقة</span>
+            </div>
+          </div>
+          <div class="offset-row">
+            <span class="offset-label">المغرب</span>
+            <div class="offset-controls">
+              <button class="offset-minus" data-prayer="maghrib">−</button>
+              <input type="number" class="offset-input" id="offsetInputMaghrib" value="0" min="-30" max="30">
+              <button class="offset-plus" data-prayer="maghrib">+</button>
+              <span class="offset-unit">دقيقة</span>
+            </div>
+          </div>
+          <div class="offset-row">
+            <span class="offset-label">العشاء</span>
+            <div class="offset-controls">
+              <button class="offset-minus" data-prayer="isha">−</button>
+              <input type="number" class="offset-input" id="offsetInputIsha" value="0" min="-30" max="30">
+              <button class="offset-plus" data-prayer="isha">+</button>
+              <span class="offset-unit">دقيقة</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -795,7 +945,7 @@ function getAdjustedMinutes(time24, offset) {
 
 function toCoptic(date) { var y = date.getFullYear() - 283; var ny = new Date(date.getFullYear(), 8, 11); if (date < ny) { y--; ny = new Date(date.getFullYear() - 1, 8, 11); } var diff = Math.floor((date - ny) / 86400000); var month = Math.floor(diff / 30); var day = diff % 30 + 1; return { day: day, month: month, year: y }; }
 
-// ======================== دوال الأذان ========================
+// ======================== دوال الأذان (تم تعديلها لمنع التكرار) ========================
 var AZAN_URLS_LIST = [
  'azan.mp3',
  'azan2.mp3',
@@ -806,6 +956,7 @@ var AZAN_URLS_LIST = [
 var testAudio = null;
 var currentAudio = null;
 var audioUnlocked = false;
+var isAudioPlaying = false;
 
 function unlockAudio() { 
   if(audioUnlocked) return; 
@@ -829,9 +980,21 @@ function stopAzan() {
     currentAudio.pause(); 
     currentAudio.currentTime = 0; 
     currentAudio = null; 
-  } 
+  }
+  if (testAudio) {
+    testAudio.pause();
+    testAudio.currentTime = 0;
+    testAudio = null;
+  }
+  isAudioPlaying = false;
   var ov = document.getElementById('azanOverlay'); 
   if (ov) ov.remove(); 
+  
+  // إعادة تعيين زر الاختبار إذا كان مفتوحاً
+  const testBtn = document.getElementById('testAzanSettingsBtn');
+  if (testBtn && testBtn.innerHTML === '⏹ إيقاف') {
+    testBtn.innerHTML = '🔊 اختبار الأذان';
+  }
 }
 
 function showAzanOverlay(prayerName) {
@@ -849,8 +1012,14 @@ function showAzanOverlay(prayerName) {
   overlay.addEventListener('click', function(e){ if(e.target === overlay) stopAzan(); });
 }
 
-// ======================== دالة تشغيل الأذان (مرة واحدة) ========================
+// دالة تشغيل الأذان - تعمل مرة واحدة فقط
 async function playAlert(prayerName) { 
+  // منع التشغيل إذا كان هناك صوت قيد التشغيل
+  if (isAudioPlaying) {
+    console.log('الصوت قيد التشغيل بالفعل، يتم تجاهل الطلب');
+    return;
+  }
+  
   // إيقاف أي صوت سابق
   stopAzan();
   unlockAudio(); 
@@ -863,39 +1032,45 @@ async function playAlert(prayerName) {
     var audio = new Audio(); 
     audio.volume = 1.0; 
     audio.src = selectedUrl; 
-    currentAudio = audio; 
+    currentAudio = audio;
+    isAudioPlaying = true;
     
     // تشغيل الصوت
     await audio.play(); 
     
     // عند انتهاء الصوت، نقوم بتنظيف المتغيرات وإغلاق الـ Overlay
     audio.addEventListener('ended', function() { 
-      currentAudio = null; 
+      currentAudio = null;
+      isAudioPlaying = false;
       var ol = document.getElementById('azanOverlay'); 
       if (ol) ol.remove(); 
     }); 
     audio.addEventListener('error', function() {
       console.error('خطأ في تشغيل الملف الصوتي');
+      isAudioPlaying = false;
       stopAzan();
     });
     return; 
   } catch(e) { 
     console.error('فشل تشغيل الأذان:', e);
+    isAudioPlaying = false;
     stopAzan();
   } 
 }
 
-// ======================== دالة اختبار الصوت (مرة واحدة) ========================
+// دالة اختبار الصوت - تعمل مرة واحدة فقط
 function testAzanSound() {
+    // منع التشغيل إذا كان هناك صوت قيد التشغيل
+    if (isAudioPlaying) {
+      stopAzan();
+      return;
+    }
+    
     unlockAudio();
     
-    // إذا كان هناك صوت قيد التشغيل، أوقفه
+    // إذا كان هناك صوت اختبار قيد التشغيل، أوقفه
     if (testAudio) {
-        testAudio.pause();
-        testAudio.currentTime = 0;
-        testAudio = null;
-        const testBtn = document.getElementById('testAzanSettingsBtn');
-        if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
+        stopAzan();
         return;
     }
     
@@ -903,9 +1078,14 @@ function testAzanSound() {
     testAudio = new Audio();
     testAudio.volume = 1.0;
     testAudio.src = selectedUrl;
+    isAudioPlaying = true;
     
     // تشغيل الصوت
-    testAudio.play().catch(function(e) { console.error('خطأ:', e); });
+    testAudio.play().catch(function(e) { 
+      console.error('خطأ:', e);
+      isAudioPlaying = false;
+      testAudio = null;
+    });
     
     // تغيير نص الزر إلى "⏹ إيقاف"
     const testBtn = document.getElementById('testAzanSettingsBtn');
@@ -914,11 +1094,13 @@ function testAzanSound() {
     // عند انتهاء الصوت، إعادة الزر إلى حالته الطبيعية
     testAudio.addEventListener('ended', function() {
         testAudio = null;
+        isAudioPlaying = false;
         if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
     });
     
     testAudio.addEventListener('error', function() {
         testAudio = null;
+        isAudioPlaying = false;
         if (testBtn) testBtn.innerHTML = '🔊 اختبار الأذان';
         showToast('حدث خطأ في تشغيل الصوت');
     });
@@ -1401,12 +1583,13 @@ function saveSettings() {
 }
 
 function updateOffsetDisplayAll() {
-  document.getElementById('offsetFajrValue').textContent = prayerOffsets.fajr;
-  document.getElementById('offsetSunriseValue').textContent = prayerOffsets.sunrise;
-  document.getElementById('offsetDhuhrValue').textContent = prayerOffsets.dhuhr;
-  document.getElementById('offsetAsrValue').textContent = prayerOffsets.asr;
-  document.getElementById('offsetMaghribValue').textContent = prayerOffsets.maghrib;
-  document.getElementById('offsetIshaValue').textContent = prayerOffsets.isha;
+  // تحديث حقول الإدخال الرقمية
+  document.getElementById('offsetInputFajr').value = prayerOffsets.fajr;
+  document.getElementById('offsetInputSunrise').value = prayerOffsets.sunrise;
+  document.getElementById('offsetInputDhuhr').value = prayerOffsets.dhuhr;
+  document.getElementById('offsetInputAsr').value = prayerOffsets.asr;
+  document.getElementById('offsetInputMaghrib').value = prayerOffsets.maghrib;
+  document.getElementById('offsetInputIsha').value = prayerOffsets.isha;
 }
 
 function setupSettingsEvents() {
@@ -1418,18 +1601,66 @@ function setupSettingsEvents() {
   for (var i = 0; i < azanRadios.length; i++) {
     azanRadios[i].addEventListener('change', function(e) { if (e.target.checked) selectedAzanIndex = parseInt(e.target.value); });
   }
+  
+  // إعدادات الأزرار + و - وحقول الإدخال
   var prayers = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   for (var p = 0; p < prayers.length; p++) {
     var prayer = prayers[p];
     var minusBtn = document.querySelector('.offset-minus[data-prayer="' + prayer + '"]');
     var plusBtn = document.querySelector('.offset-plus[data-prayer="' + prayer + '"]');
+    var inputField = document.getElementById('offsetInput' + prayer.charAt(0).toUpperCase() + prayer.slice(1));
+    
+    // حدث النقصان
     if (minusBtn) {
-      minusBtn.addEventListener('click', (function(prayer) { return function() { prayerOffsets[prayer]--; updateOffsetDisplayAll(); }; })(prayer));
+      minusBtn.addEventListener('click', function(prayer) { 
+        return function() { 
+          var val = prayerOffsets[prayer] - 1;
+          if (val >= -30 && val <= 30) {
+            prayerOffsets[prayer] = val;
+            updateOffsetDisplayAll();
+          }
+        };
+      }(prayer));
     }
+    
+    // حدث الزيادة
     if (plusBtn) {
-      plusBtn.addEventListener('click', (function(prayer) { return function() { prayerOffsets[prayer]++; updateOffsetDisplayAll(); }; })(prayer));
+      plusBtn.addEventListener('click', function(prayer) { 
+        return function() { 
+          var val = prayerOffsets[prayer] + 1;
+          if (val >= -30 && val <= 30) {
+            prayerOffsets[prayer] = val;
+            updateOffsetDisplayAll();
+          }
+        };
+      }(prayer));
+    }
+    
+    // حدث الإدخال المباشر
+    if (inputField) {
+      inputField.addEventListener('change', function(prayer) { 
+        return function() {
+          var val = parseInt(this.value);
+          if (!isNaN(val) && val >= -30 && val <= 30) {
+            prayerOffsets[prayer] = val;
+            updateOffsetDisplayAll();
+          } else {
+            // إعادة القيمة الصحيحة إذا كانت خارج النطاق
+            this.value = prayerOffsets[prayer];
+          }
+        };
+      }(prayer));
+      
+      // منع إدخال قيم خارج النطاق أثناء الكتابة
+      inputField.addEventListener('input', function() {
+        var val = parseInt(this.value);
+        if (!isNaN(val) && (val < -30 || val > 30)) {
+          this.value = Math.min(30, Math.max(-30, val));
+        }
+      });
     }
   }
+  
   document.getElementById('saveSettingsBtn').addEventListener('click', function() { saveSettings(); document.getElementById('settingsOverlay').style.display = 'none'; });
   document.getElementById('cancelSettingsBtn').addEventListener('click', function() { loadSettings(); document.getElementById('settingsOverlay').style.display = 'none'; });
   document.getElementById('testAzanSettingsBtn').addEventListener('click', function() { testAzanSound(); });
@@ -1469,7 +1700,10 @@ function startCountdownTimer(){
 
 document.getElementById('locationFooterBtn').addEventListener('click', showLocationPopup);
 document.getElementById('saveImageBtn').addEventListener('click', showSaveDialog);
-document.getElementById('testAudioBtn').addEventListener('click', function() { playAlert('اختبار'); });
+document.getElementById('testAudioBtn').addEventListener('click', function() { 
+  // اختبار الأذان من الواجهة الرئيسية
+  playAlert('اختبار'); 
+});
 
 async function shareWebsiteLink() {
     var websiteUrl = 'https://alaamekkawy-design.github.io/Praycalender/';
